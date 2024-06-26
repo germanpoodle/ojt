@@ -41,7 +41,7 @@ class _DisbursementChequeState extends State<DisbursementCheque>
       String onlineTransactionStatus) async {
     try {
       var url = Uri.parse(
-          'http://127.0.0.1/localconnect/get_transaction.php?onlineTransactionStatus=$onlineTransactionStatus');
+          'http://192.168.68.119/localconnect/get_transaction.php?onlineTransactionStatus=$onlineTransactionStatus');
       var response = await http.get(url);
 
       if (response.statusCode == 200) {
@@ -121,7 +121,6 @@ class _DisbursementChequeState extends State<DisbursementCheque>
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
     Size screenSize = MediaQuery.of(context).size;
 
     return Scaffold(
@@ -196,7 +195,9 @@ class _DisbursementChequeState extends State<DisbursementCheque>
                       color: Colors.white,
                     ),
                   ),
-                  SizedBox(width: 5,),
+                  SizedBox(
+                    width: 5,
+                  ),
                   Text(
                     'Pending with Attachments',
                     style: TextStyle(
@@ -221,7 +222,9 @@ class _DisbursementChequeState extends State<DisbursementCheque>
                       color: Colors.white,
                     ),
                   ),
-                  SizedBox(width: 5,),
+                  SizedBox(
+                    width: 5,
+                  ),
                   Text(
                     'Pending with no Attachments',
                     style: TextStyle(
