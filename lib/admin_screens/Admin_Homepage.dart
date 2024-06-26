@@ -27,7 +27,8 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
   Future<List<Transaction>> _fetchTransactionDetails() async {
     try {
-      var url = Uri.parse('http://127.0.0.1/localconnect/get_transaction.php');
+      var url =
+          Uri.parse('http:/192.168.68.119/localconnect/get_transaction.php');
       var response = await http.get(url);
 
       if (response.statusCode == 200) {
@@ -253,7 +254,10 @@ class _AdminHomePageState extends State<AdminHomePage> {
                     return SingleChildScrollView(
                       child: Column(
                         children: transactions.map((transaction) {
-                          return CustomCardExample(transaction: transaction,isSelected: false,);
+                          return CustomCardExample(
+                            transaction: transaction,
+                            isSelected: false,
+                          );
                         }).toList(),
                       ),
                     );
