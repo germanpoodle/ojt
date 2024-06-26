@@ -18,11 +18,17 @@ class DisbursementDetailsScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _DisbursementDetailsScreenState createState() => _DisbursementDetailsScreenState();
+  _DisbursementDetailsScreenState createState() =>
+      _DisbursementDetailsScreenState();
 }
-  String createDocRef(String docType, String docNo,) {
-    return '$docType#$docNo';
-  }
+
+String createDocRef(
+  String docType,
+  String docNo,
+) {
+  return '$docType#$docNo';
+}
+
 class _DisbursementDetailsScreenState extends State<DisbursementDetailsScreen> {
   int _selectedIndex = 0;
   bool _showRemarks = false;
@@ -90,8 +96,9 @@ class _DisbursementDetailsScreenState extends State<DisbursementDetailsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              buildReadOnlyTextField('Transacting Party', detail.transactingParty),
-              SizedBox(height: 20),
+              buildReadOnlyTextField(
+                  'Transacting Party', detail.transactingParty),
+              const Spacer(),
               buildTable(detail),
               SizedBox(height: 20),
               Center(
@@ -99,8 +106,12 @@ class _DisbursementDetailsScreenState extends State<DisbursementDetailsScreen> {
                   onPressed: () {
                     // Navigate to Add Attachment Screen
                     Navigator.push(
-                       context,
-                       MaterialPageRoute(builder: (context) => UserAddAttachment(transaction: detail, selectedDetails: [],)),
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => UserAddAttachment(
+                                transaction: detail,
+                                selectedDetails: [],
+                              )),
                     );
                   },
                   child: Text('Add Attachment'),
@@ -144,7 +155,10 @@ class _DisbursementDetailsScreenState extends State<DisbursementDetailsScreen> {
         color: Colors.black,
       ),
       children: [
-        buildTableRow('Doc Ref', createDocRef(detail.docType, detail.docNo),),
+        buildTableRow(
+          'Doc Ref',
+          createDocRef(detail.docType, detail.docNo),
+        ),
         buildTableRow('Date', formatDate(detail.transDate)),
         buildTableRow('Payee', detail.transactingParty),
         buildTableRow('Check', detail.checkNumber),
@@ -215,54 +229,59 @@ class _DisbursementDetailsScreenState extends State<DisbursementDetailsScreen> {
         automaticallyImplyLeading: false,
         backgroundColor: Color.fromARGB(255, 79, 128, 189),
         toolbarHeight: 77,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        title: Column(
           children: [
             Row(
+              //RenderFlex Overflow Error
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Image.asset(
-                  'logo.png',
-                  width: 60,
-                  height: 55,
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'For Uploading',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontFamily: 'Tahoma',
-                    color: Color.fromARGB(255, 233, 227, 227),
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Container(
-                  margin: EdgeInsets.only(right: screenSize.width * 0.02),
-                  child: IconButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => NotificationScreen()),
-                      );
-                    },
-                    icon: const Icon(
-                      Icons.notifications,
-                      size: 24,
-                      color: Color.fromARGB(255, 233, 227, 227),
+                Row(
+                  children: [
+                    Image.asset(
+                      'logo.png',
+                      width: 60,
+                      height: 55,
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'For Uploading',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontFamily: 'Tahoma',
+                        color: Color.fromARGB(255, 233, 227, 227),
+                      ),
+                    ),
+                  ],
                 ),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.person,
-                    size: 24,
-                    color: Color.fromARGB(255, 233, 227, 227),
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Container(
+                      margin: EdgeInsets.only(right: screenSize.width * 0.02),
+                      child: IconButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => NotificationScreen()),
+                          );
+                        },
+                        icon: const Icon(
+                          Icons.notifications,
+                          size: 24,
+                          color: Color.fromARGB(255, 233, 227, 227),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {},
+                      icon: const Icon(
+                        Icons.person,
+                        size: 24,
+                        color: Color.fromARGB(255, 233, 227, 227),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -271,7 +290,8 @@ class _DisbursementDetailsScreenState extends State<DisbursementDetailsScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: buildDetailsCard(widget.transaction), // Use widget.transaction here
+        child:
+            buildDetailsCard(widget.transaction), // Use widget.transaction here
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,

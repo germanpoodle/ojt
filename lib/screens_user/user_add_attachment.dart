@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import '../models/user_transaction.dart';
-import 'user_homepage.dart';
 import 'user_menu.dart';
 import 'user_send_attachment.dart';
 import 'user_upload.dart';
@@ -84,7 +83,7 @@ class _UserAddAttachmentState extends State<UserAddAttachment> {
       var request = http.MultipartRequest(
         'POST',
         Uri.parse(
-            'http://192.168.68.110/localconnect/UserUploadUpdate/update_TS.php'),
+            'http://192.168.68.119/localconnect/UserUploadUpdate/update_TS.php'),
       );
 
       // Add the 'doc_type', 'doc_no', and 'date_trans' fields to the request
@@ -191,7 +190,6 @@ class _UserAddAttachmentState extends State<UserAddAttachment> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
     Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
