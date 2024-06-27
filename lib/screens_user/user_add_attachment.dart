@@ -1,9 +1,6 @@
-import 'dart:convert';
 import 'dart:developer' as developer;
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:http/http.dart' as http;
 import '../models/user_transaction.dart';
 import 'user_homepage.dart';
 import 'user_menu.dart';
@@ -76,104 +73,6 @@ class _UserAddAttachmentState extends State<UserAddAttachment> {
     }
   }
 
-  Future<void> _uploadFile(PlatformFile pickedFile) async {
-    setState(() {
-      _isLoading = true; // Show loading indicator
-    });
-
-    try {
-      var request = http.MultipartRequest(
-        'POST',
-        Uri.parse(
-            'http://192.168.68.111/localconnect/UserUploadUpdate/update_TS.php'),
-      );
-
-      // Add the 'doc_type', 'doc_no', and 'date_trans' fields to the request
-      request.fields['doc_type'] = widget.transaction.docType.toString();
-      request.fields['doc_no'] = widget.transaction.docNo.toString();
-      request.fields['date_trans'] = widget.transaction.dateTrans.toString();
-
-      request.files.add(
-        http.MultipartFile.fromBytes(
-          'file',
-          pickedFile.bytes!,
-          filename: pickedFile.name,
-        ),
-      );
-
-      developer.log('Uploading file: ${pickedFile.name}');
-      var response = await request.send();
-
-      if (response.statusCode == 200) {
-        var responseBody = await response.stream.bytesToString();
-        developer.log('Upload response: $responseBody');
-
-        try {
-          var result = jsonDecode(responseBody);
-          if (result['status'] == 'success') {
-            setState(() {
-              attachments
-                  .removeWhere((element) => element['name'] == _fileName);
-              attachments.add({'name': _fileName!, 'status': 'Uploaded'});
-              developer.log('Attachments array after uploading: $attachments');
-            });
-
-            _showDialog(
-              context,
-              'Success',
-              'File uploaded successfully!',
-            );
-
-            // Navigate to UserSendAttachment screen
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => UserSendAttachment(
-                  transaction: widget.transaction, // Pass the transaction
-                  selectedDetails: [], attachments: [], // Pass the selected details, adjust based on your requirements
-                ),
-              ),
-            );
-
-            
-          } else {
-            _showDialog(
-              context,
-              'Error',
-              'File upload failed: ${result['message']}',
-            );
-            developer.log('File upload failed: ${result['message']}');
-          }
-        } catch (e) {
-          _showDialog(
-            context,
-            'Error',
-            'Error uploading file. Please try again later.',
-          );
-          developer.log('Error parsing upload response: $e');
-        }
-      } else {
-        _showDialog(
-          context,
-          'Error',
-          'File upload failed with status: ${response.statusCode}',
-        );
-        developer.log('File upload failed with status: ${response.statusCode}');
-      }
-    } catch (e) {
-      developer.log('Error uploading file: $e');
-      _showDialog(
-        context,
-        'Error',
-        'Error uploading file. Please try again later.',
-      );
-    } finally {
-      setState(() {
-        _isLoading = false; // Hide loading indicator
-      });
-    }
-  }
-
   void _showDialog(BuildContext context, String title, String content) {
     showDialog(
       context: context,
@@ -191,11 +90,6 @@ class _UserAddAttachmentState extends State<UserAddAttachment> {
       ),
     );
   }
-//   Future<Uint8List> _getFileBytes(PlatformFile pickedFile) async {
-//   // Get the bytes of the picked file
-//   final bytes = await pickedFile.openRead().toBytes();
-//   return bytes;
-// }
 
   @override
   Widget build(BuildContext context) {
@@ -204,7 +98,7 @@ class _UserAddAttachmentState extends State<UserAddAttachment> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: Color.fromARGB(255, 79, 128, 189),
+        backgroundColor: const Color.fromARGB(255, 79, 128, 189),
         toolbarHeight: 77,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -337,12 +231,17 @@ class _UserAddAttachmentState extends State<UserAddAttachment> {
                           child: const Text('Discard'),
                         ),
                         ElevatedButton(
-                          onPressed: () async {
-                            if (_pickedFile != null) {
-                              await _uploadFile(_pickedFile!);
-                            } else {
-                              developer.log('No file selected');
-                            }
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => UserSendAttachment(
+                                  transaction: widget.transaction,
+                                  selectedDetails: [],
+                                  attachments: attachments, // Pass the attachments list
+                                ),
+                              ),
+                            );
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green,
@@ -364,7 +263,7 @@ class _UserAddAttachmentState extends State<UserAddAttachment> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        selectedItemColor: Color.fromARGB(255, 79, 128, 189),
+        selectedItemColor: const Color.fromARGB(255, 79, 128, 189),
         onTap: _onItemTapped,
         items: const [
           BottomNavigationBarItem(
