@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-
 import 'package:open_file/open_file.dart';
 import 'dart:io';
 
 import 'user_menu.dart';
 import 'user_upload.dart';
+
 
 class ViewFilesPage extends StatefulWidget {
   final List<File> attachments;
@@ -16,8 +16,8 @@ class ViewFilesPage extends StatefulWidget {
 }
 
 class _ViewFilesPageState extends State<ViewFilesPage> {
+  int _selectedIndex = 0;
 
-int _selectedIndex = 0;
   void _onItemTapped(int index) {
     if (_selectedIndex == index) return;
 
@@ -53,8 +53,7 @@ int _selectedIndex = 0;
     Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: Color.fromARGB(255, 79, 128, 189),
+        backgroundColor: const Color.fromARGB(255, 79, 128, 189),
         toolbarHeight: 77,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -113,21 +112,23 @@ int _selectedIndex = 0;
               itemCount: widget.attachments.length,
               itemBuilder: (context, index) {
                 final file = widget.attachments[index];
-                return ListTile(
-                  leading: const Icon(Icons.attach_file),
-                  title: Text(file.path.split('/').last), // Display file name
-                  subtitle: Text(file.path), // Display file path
-                  trailing: IconButton(
-                    icon: const Icon(Icons.remove_circle),
-                    onPressed: () {
-                      // Handle remove file action
-                      // Example: removeAttachment(file);
-                      // This can be implemented based on your logic to remove the file from the list
+                return Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.attach_file),
+                    title: Text(file.path.split('/').last), // Display file name
+                    subtitle: Text(file.path), // Display file path
+                    trailing: IconButton(
+                      icon: const Icon(Icons.remove_circle),
+                      onPressed: () {
+                        setState(() {
+                          widget.attachments.removeAt(index);
+                        });
+                      },
+                    ),
+                    onTap: () async {
+                      await OpenFile.open(file.path);
                     },
                   ),
-                  onTap: () async {
-                    await OpenFile.open(file.path);
-                  },
                 );
               },
             )
@@ -136,7 +137,7 @@ int _selectedIndex = 0;
             ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        selectedItemColor: Color.fromARGB(255, 79, 128, 189),
+        selectedItemColor: const Color.fromARGB(255, 79, 128, 189),
         onTap: _onItemTapped,
         items: const [
           BottomNavigationBarItem(

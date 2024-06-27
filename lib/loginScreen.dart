@@ -21,7 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> loginUser(BuildContext context, String username, String password) async {
     try {
-      final url = Uri.parse('http://192.168.68.110/localconnect/login.php');
+      final url = Uri.parse('http://192.168.68.111/localconnect/login.php');
       final response = await http.post(
         url,
         body: {

@@ -68,7 +68,7 @@ void _onItemTapped(int index) {
   Future<void> fetchTransactions() async {
     try {
       final response = await http.get(Uri.parse(
-          'http://192.168.68.110/localconnect/fetch_transaction_data.php'));
+          'http://192.168.68.111/localconnect/fetch_transaction_data.php'));
 
       if (response.statusCode == 200) {
         setState(() {
@@ -176,7 +176,7 @@ void _onItemTapped(int index) {
 
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
+        
         backgroundColor: Color.fromARGB(255, 79, 128, 189),
         toolbarHeight: 77,
         title: Row(

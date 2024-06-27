@@ -6,21 +6,21 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../admin_screens/notifications.dart';
 import '../models/user_transaction.dart';
-import 'user_homepage.dart';
 import 'user_menu.dart';
 import 'user_upload.dart';
 import 'view_files.dart';
 import 'user_add_attachment.dart';
 
-
 class UserSendAttachment extends StatefulWidget {
   final Transaction transaction;
-  final List<String> selectedDetails;
+  final List selectedDetails;
+  final List<File> attachments; // Receive the attachments
 
-  UserSendAttachment({
+  const UserSendAttachment({
     Key? key,
     required this.transaction,
     required this.selectedDetails,
+    required this.attachments,
   }) : super(key: key);
 
   @override
@@ -35,6 +35,7 @@ class _UserSendAttachmentState extends State<UserSendAttachment> {
   int _selectedIndex = 0;
   bool _showRemarks = false;
   bool _isLoading = false;
+  List<File> attachments = [];
 
   @override
   void initState() {
@@ -84,58 +85,59 @@ class _UserSendAttachmentState extends State<UserSendAttachment> {
     }
   }
 
-Future<void> _uploadTransaction() async {
-  setState(() {
-    _isLoading = true; // Show loading indicator
-  });
+  Future<void> _uploadTransaction() async {
+    setState(() {
+      _isLoading = true; // Show loading indicator
+    });
 
-  try {
-    var uri = Uri.parse('http://192.168.68.110/localconnect/UserUploadUpdate/update_OPS.php');
-    var request = http.Request('POST', uri);
+    try {
+      var uri = Uri.parse('http://192.168.68.119/localconnect/UserUploadUpdate/update_OPS.php');
+      var request = http.Request('POST', uri);
 
-    // URL-encode the values
-    var requestBody = 'doc_type=${Uri.encodeComponent(widget.transaction.docType)}&doc_no=${Uri.encodeComponent(widget.transaction.docNo)}&date_trans=${Uri.encodeComponent(widget.transaction.dateTrans)}';
+      // URL-encode the values
+      var requestBody = 'doc_type=${Uri.encodeComponent(widget.transaction.docType)}&doc_no=${Uri.encodeComponent(widget.transaction.docNo)}&date_trans=${Uri.encodeComponent(widget.transaction.dateTrans)}';
 
-    request.headers['Content-Type'] = 'application/x-www-form-urlencoded';
-    request.body = requestBody;
+      request.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+      request.body = requestBody;
 
-    var response = await request.send();
+      var response = await request.send();
 
-    if (response.statusCode == 200) {
-      var responseBody = await response.stream.bytesToString();
-      var result = jsonDecode(responseBody);
+      if (response.statusCode == 200) {
+        var responseBody = await response.stream.bytesToString();
+        var result = jsonDecode(responseBody);
 
-      if (result['status'] == 'Success') {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['message'])),
-        );
+        if (result['status'] == 'Success') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(result['message'])),
+          );
 
-        // Navigate back to previous screen (DisbursementDetailsScreen)
-        Navigator.pop(context);
+          // Navigate back to previous screen (DisbursementDetailsScreen)
+          Navigator.pop(context);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(result['message'])),
+          );
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['message'])),
+          SnackBar(
+              content: Text(
+                  'Transaction upload failed with status: ${response.statusCode}')),
         );
       }
-    } else {
+    } catch (e) {
+      print('Error uploading transaction: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(
-                'Transaction upload failed with status: ${response.statusCode}')),
+            content: Text('Error uploading transaction. Please try again later.')),
       );
+    } finally {
+      setState(() {
+        _isLoading = false; // Hide loading indicator
+      });
     }
-  } catch (e) {
-    print('Error uploading transaction: $e');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-          content: Text('Error uploading transaction. Please try again later.')),
-    );
-  } finally {
-    setState(() {
-      _isLoading = false; // Hide loading indicator
-    });
   }
-}
+
   Widget buildDetailsCard(Transaction detail) {
     return Container(
       height: 420,
@@ -158,9 +160,9 @@ Future<void> _uploadTransaction() async {
               SizedBox(height: 20),
               Center(
                 child: TextButton(
-                  onPressed: () {
-                    // Navigate to Add Attachment Screen
-                    Navigator.push(
+                  onPressed: () async {
+                    // Navigate to Add Attachment Screen and wait for result
+                    final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
                           builder: (context) => UserAddAttachment(
@@ -168,6 +170,12 @@ Future<void> _uploadTransaction() async {
                                 selectedDetails: [],
                               )),
                     );
+
+                    if (result != null && result is List<File>) {
+                      setState(() {
+                        attachments.addAll(result);
+                      });
+                    }
                   },
                   child: Text('Add Attachment'),
                   style: TextButton.styleFrom(
@@ -278,7 +286,6 @@ Future<void> _uploadTransaction() async {
 
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
         backgroundColor: Color.fromARGB(255, 79, 128, 189),
         toolbarHeight: 77,
         title: Row(
@@ -375,8 +382,10 @@ Future<void> _uploadTransaction() async {
             print('View Files button pressed.');
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => ViewFilesPage(attachments: []),
+               MaterialPageRoute(
+                    builder: (context) => ViewFilesPage(
+                      attachments: attachments,
+                    ),
               ),
             );
           },

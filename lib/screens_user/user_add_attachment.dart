@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
@@ -84,7 +85,7 @@ class _UserAddAttachmentState extends State<UserAddAttachment> {
       var request = http.MultipartRequest(
         'POST',
         Uri.parse(
-            'http://192.168.68.110/localconnect/UserUploadUpdate/update_TS.php'),
+            'http://192.168.68.119/localconnect/UserUploadUpdate/update_TS.php'),
       );
 
       // Add the 'doc_type', 'doc_no', and 'date_trans' fields to the request
@@ -129,10 +130,12 @@ class _UserAddAttachmentState extends State<UserAddAttachment> {
               MaterialPageRoute(
                 builder: (context) => UserSendAttachment(
                   transaction: widget.transaction, // Pass the transaction
-                  selectedDetails: [], // Pass the selected details, adjust based on your requirements
+                  selectedDetails: [], attachments: [], // Pass the selected details, adjust based on your requirements
                 ),
               ),
             );
+
+            
           } else {
             _showDialog(
               context,
@@ -188,6 +191,11 @@ class _UserAddAttachmentState extends State<UserAddAttachment> {
       ),
     );
   }
+//   Future<Uint8List> _getFileBytes(PlatformFile pickedFile) async {
+//   // Get the bytes of the picked file
+//   final bytes = await pickedFile.openRead().toBytes();
+//   return bytes;
+// }
 
   @override
   Widget build(BuildContext context) {

@@ -46,7 +46,7 @@ class _MenuState extends State<MenuWindow> {
 
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
+        
         backgroundColor: const Color.fromARGB(255, 79, 128, 189),
         toolbarHeight: 77,
         title: Row(
