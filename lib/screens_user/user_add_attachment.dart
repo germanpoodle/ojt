@@ -85,7 +85,7 @@ class _UserAddAttachmentState extends State<UserAddAttachment> {
       var request = http.MultipartRequest(
         'POST',
         Uri.parse(
-            'http://192.168.68.119/localconnect/UserUploadUpdate/update_TS.php'),
+            'http://192.168.68.111/localconnect/UserUploadUpdate/update_TS.php'),
       );
 
       // Add the 'doc_type', 'doc_no', and 'date_trans' fields to the request

@@ -91,11 +91,13 @@ class _UserSendAttachmentState extends State<UserSendAttachment> {
     });
 
     try {
-      var uri = Uri.parse('http://192.168.68.119/localconnect/UserUploadUpdate/update_OPS.php');
+      var uri = Uri.parse(
+          'http://192.168.68.111/localconnect/UserUploadUpdate/update_OPS.php');
       var request = http.Request('POST', uri);
 
       // URL-encode the values
-      var requestBody = 'doc_type=${Uri.encodeComponent(widget.transaction.docType)}&doc_no=${Uri.encodeComponent(widget.transaction.docNo)}&date_trans=${Uri.encodeComponent(widget.transaction.dateTrans)}';
+      var requestBody =
+          'doc_type=${Uri.encodeComponent(widget.transaction.docType)}&doc_no=${Uri.encodeComponent(widget.transaction.docNo)}&date_trans=${Uri.encodeComponent(widget.transaction.dateTrans)}';
 
       request.headers['Content-Type'] = 'application/x-www-form-urlencoded';
       request.body = requestBody;
@@ -129,7 +131,8 @@ class _UserSendAttachmentState extends State<UserSendAttachment> {
       print('Error uploading transaction: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('Error uploading transaction. Please try again later.')),
+            content:
+                Text('Error uploading transaction. Please try again later.')),
       );
     } finally {
       setState(() {
@@ -382,10 +385,18 @@ class _UserSendAttachmentState extends State<UserSendAttachment> {
             print('View Files button pressed.');
             Navigator.push(
               context,
-               MaterialPageRoute(
-                    builder: (context) => ViewFilesPage(
-                      attachments: attachments,
-                    ),
+              MaterialPageRoute(
+                builder: (context) => ViewFilesPage(
+                  attachments: attachments
+                      .map((file) => {
+                            'name': file.path
+                                .split('/')
+                                .last, // extract file name from path
+                            'status':
+                                'Uploaded', // or any other status you want to display
+                          })
+                      .toList(),
+                ),
               ),
             );
           },

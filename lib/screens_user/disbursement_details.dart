@@ -25,7 +25,7 @@ class DisbursementDetailsScreen extends StatefulWidget {
   }
 class _DisbursementDetailsScreenState extends State<DisbursementDetailsScreen> {
   int _selectedIndex = 0;
-  bool _showRemarks = false;
+  final bool _showRemarks = false;
 
   @override
   void initState() {

@@ -1,16 +1,15 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:open_file/open_file.dart';
-import 'dart:io';
+import 'package:http/http.dart' as http;
 
 import 'user_menu.dart';
 import 'user_upload.dart';
 
-
 class ViewFilesPage extends StatefulWidget {
-  final List<File> attachments;
+  final List<Map<String, String>> attachments; // Store file information as a list of maps
 
   const ViewFilesPage({Key? key, required this.attachments}) : super(key: key);
-
+ 
   @override
   _ViewFilesPageState createState() => _ViewFilesPageState();
 }
@@ -44,6 +43,29 @@ class _ViewFilesPageState extends State<ViewFilesPage> {
           MaterialPageRoute(builder: (context) => const MenuWindow()),
         );
         break;
+    }
+  }
+
+  Future<List<Attachment>> _fetchAttachments() async {
+    try {
+      var url = Uri.parse(
+          'http://192.168.68.111/localconnect/view_attachment.php');
+      var response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        var jsonData = jsonDecode(response.body);
+        if (jsonData is List) {
+          return jsonData
+              .map((attachment) => Attachment.fromJson(attachment))
+              .toList();
+        } else {
+          throw Exception('Unexpected response format');
+        }
+      } else {
+        throw Exception('Failed to load attachments: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to fetch attachments: $e');
     }
   }
 
@@ -107,34 +129,31 @@ class _ViewFilesPageState extends State<ViewFilesPage> {
           ],
         ),
       ),
-      body: widget.attachments.isNotEmpty
-          ? ListView.builder(
-              itemCount: widget.attachments.length,
+      body: FutureBuilder<List<Attachment>>(
+        future: _fetchAttachments(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text('No files uploaded.'));
+          } else {
+            var attachments = snapshot.data!;
+            return ListView.builder(
+              itemCount: attachments.length,
               itemBuilder: (context, index) {
-                final file = widget.attachments[index];
                 return Card(
                   child: ListTile(
-                    leading: const Icon(Icons.attach_file),
-                    title: Text(file.path.split('/').last), // Display file name
-                    subtitle: Text(file.path), // Display file path
-                    trailing: IconButton(
-                      icon: const Icon(Icons.remove_circle),
-                      onPressed: () {
-                        setState(() {
-                          widget.attachments.removeAt(index);
-                        });
-                      },
-                    ),
-                    onTap: () async {
-                      await OpenFile.open(file.path);
-                    },
+                    title: Text(attachments[index].fileName),
+                    subtitle: Text(attachments[index].filePath),
                   ),
                 );
               },
-            )
-          : const Center(
-              child: Text('No files uploaded.'),
-            ),
+            );
+          }
+        },
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         selectedItemColor: const Color.fromARGB(255, 79, 128, 189),
@@ -146,7 +165,7 @@ class _ViewFilesPageState extends State<ViewFilesPage> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.quiz),
-            label: 'No Support',
+            label:'No Support',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.menu_sharp),
@@ -154,6 +173,20 @@ class _ViewFilesPageState extends State<ViewFilesPage> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class Attachment {
+  final String fileName;
+  final String filePath;
+
+  Attachment({required this.fileName, required this.filePath});
+
+  factory Attachment.fromJson(Map<String, dynamic> json) {
+    return Attachment(
+      fileName: json['file_name'],
+      filePath: json['file_path'],
     );
   }
 }
