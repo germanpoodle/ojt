@@ -1,32 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:ojt/screens_user/no_support.dart';
+import 'package:ojt/transmittal_screens/fetching_data.dart';
 
 import '../admin_screens/notifications.dart';
 import '../models/user_transaction.dart';
-import 'user_add_attachment.dart';
-import 'user_menu.dart';
-import 'user_upload.dart'; // Import your Transaction model
+import '../screens_user/user_menu.dart';
+import 'view_attachment.dart';
 
-class DisbursementDetailsScreen extends StatefulWidget {
+class ReviewData extends StatefulWidget {
   final Transaction transaction;
   final List<String> selectedDetails;
 
-  DisbursementDetailsScreen({
+  ReviewData({
     Key? key,
     required this.transaction,
     required this.selectedDetails,
   }) : super(key: key);
 
   @override
-  _DisbursementDetailsScreenState createState() => _DisbursementDetailsScreenState();
+  _ReviewDataState createState() => _ReviewDataState();
 }
 
 String createDocRef(String docType, String docNo) {
   return '$docType#$docNo';
 }
 
-class _DisbursementDetailsScreenState extends State<DisbursementDetailsScreen> {
+class _ReviewDataState extends State<ReviewData> {
   int _selectedIndex = 0;
   final bool _showRemarks = false;
 
@@ -60,14 +59,14 @@ class _DisbursementDetailsScreenState extends State<DisbursementDetailsScreen> {
       case 0:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
+          MaterialPageRoute(builder: (context) => const TransmittalHomePage()),
         );
         break;
       case 1:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const NoSupportScreen()),
-        );
+        // Navigator.pushReplacement(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => DisbursementDetailsScreen()),
+        // );
         break;
       case 2:
         Navigator.pushReplacement(
@@ -79,42 +78,24 @@ class _DisbursementDetailsScreenState extends State<DisbursementDetailsScreen> {
   }
 
   Widget buildDetailsCard(Transaction detail) {
-    return Container(
-      child: Card(
-        semanticContainer: true,
-        borderOnForeground: true,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
-        elevation: 4,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              buildReadOnlyTextField('Transacting Party', detail.transactingParty),
-              SizedBox(height: 20),
-              buildTable(detail),
-              SizedBox(height: 20),
-              Center(
-                child: TextButton(
-                  onPressed: () {
-                    // Navigate to Add Attachment Screen
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => UserAddAttachment(transaction: detail, selectedDetails: [])),
-                    );
-                  },
-                  child: Text('Add Attachment'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: Color.fromARGB(255, 79, 128, 189),
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  ),
-                ),
-              ),
-            ],
-          ),
+    return Card(
+      semanticContainer: true,
+      borderOnForeground: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            buildReadOnlyTextField(
+                'Transacting Party', detail.transactingParty),
+            SizedBox(height: 20),
+            buildTable(detail),
+            SizedBox(height: 20),
+          ],
         ),
       ),
     );
@@ -182,7 +163,6 @@ class _DisbursementDetailsScreenState extends State<DisbursementDetailsScreen> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
@@ -203,7 +183,7 @@ class _DisbursementDetailsScreenState extends State<DisbursementDetailsScreen> {
                 ),
                 const SizedBox(width: 8),
                 const Text(
-                  'For Uploading',
+                  'For Transmittal',
                   style: TextStyle(
                     fontSize: 16,
                     fontFamily: 'Tahoma',
@@ -247,15 +227,58 @@ class _DisbursementDetailsScreenState extends State<DisbursementDetailsScreen> {
         ),
       ),
       body: Padding(
-       padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           child: Column(
             children: [
               buildDetailsCard(widget.transaction),
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    child: Row(
+                      children: [
+                        Icon(Icons.folder_open),
+                        Text('  View Files'),
+                      ],
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey[400],
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TransViewAttachments(
+                            docType:
+                                'your_doc_type', // Replace with actual docType
+                            docNo: 'your_doc_no', // Replace with actual docNo
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  ElevatedButton(
+                    child: Row(
+                      children: [
+                        Icon(Icons.reviews),
+                        Text('  Review'),
+                      ],
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color.fromARGB(255, 79, 129, 189),
+                    ),
+                    onPressed: () {
+                      // add your button press logic here
+                    },
+                  ),
+                ],
+              ),
             ],
           ),
         ),
-      ), 
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         selectedItemColor: Color.fromARGB(255, 79, 128, 189),

@@ -3,22 +3,22 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
-import 'package:ojt/screens_user/no_support.dart';
+import 'package:ojt/transmittal_screens/review_data.dart';
 import 'package:scrollable_table_view/scrollable_table_view.dart';
-import 'no_support.dart';
-import '../models/user_transaction.dart'; // Import your Transaction model
-import 'disbursement_details.dart';
-import 'user_menu.dart'; // Import the DisbursementDetailsScreen
+
+import '../models/user_transaction.dart';
+import '../screens_user/user_menu.dart'; // Import your Transaction model
 
 
-class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+
+class TransmittalHomePage extends StatefulWidget {
+  const TransmittalHomePage({Key? key}) : super(key: key);
 
   @override
-  _HomePageState createState() => _HomePageState();
+  _TransmittalHomePageState createState() => _TransmittalHomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _TransmittalHomePageState extends State<TransmittalHomePage> {
   late List<Transaction> transactions;
   late bool isLoading;
   String selectedColumn = 'docRef';
@@ -48,14 +48,14 @@ void _onItemTapped(int index) {
       case 0:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
+          MaterialPageRoute(builder: (context) => const TransmittalHomePage()),
         );
         break;
       case 1:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const NoSupportScreen()),
-        );
+        // Navigator.pushReplacement(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => DisbursementDetailsScreen()),
+        // );
         break;
       case 2:
         Navigator.pushReplacement(
@@ -67,26 +67,29 @@ void _onItemTapped(int index) {
   }
 
   Future<void> fetchTransactions() async {
-    try {
-      final response = await http.get(Uri.parse(
-          'http://127.0.0.1/localconnect/fetch_transaction_data.php'));
+  try {
+    final response = await http.get(Uri.parse(
+        'http://127.0.0.1/localconnect/fetch_transaction_data.php'));
 
-      if (response.statusCode == 200) {
-        setState(() {
-          final List<dynamic> data = json.decode(response.body);
-          transactions =
-              data.map((json) => Transaction.fromJson(json)).toList();
-          isLoading = false;
-        });
-      } else {
-        throw Exception(
-            'Failed to load data. Status code: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error fetching data: $e');
-      throw Exception('Failed to connect to server.');
+    if (response.statusCode == 200) {
+      setState(() {
+        final List<dynamic> data = json.decode(response.body);
+        transactions = data
+            .map((json) => Transaction.fromJson(json))
+            .where((transaction) => transaction.onlineProcessingStatus == 'U')
+            .toList();
+        isLoading = false;
+      });
+    } else {
+      throw Exception(
+          'Failed to load data. Status code: ${response.statusCode}');
     }
+  } catch (e) {
+    print('Error fetching data: $e');
+    throw Exception('Failed to connect to server.');
   }
+}
+
 
   void previousPage() {
     setState(() {
@@ -158,7 +161,7 @@ void _onItemTapped(int index) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => DisbursementDetailsScreen(
+        builder: (context) => ReviewData(
           transaction: transaction,
           selectedDetails: [], // Adjust based on your requirements
         ),
@@ -192,7 +195,7 @@ void _onItemTapped(int index) {
                 ),
                 const SizedBox(width: 8),
                 const Text(
-                  'For Uploading',
+                  'For Transmittal',
                   style: TextStyle(
                     fontSize: 16,
                     color: Color.fromARGB(255, 233, 227, 227),

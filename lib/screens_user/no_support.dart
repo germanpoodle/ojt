@@ -3,22 +3,21 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
-import 'package:ojt/screens_user/no_support.dart';
 import 'package:scrollable_table_view/scrollable_table_view.dart';
-import 'no_support.dart';
+
 import '../models/user_transaction.dart'; // Import your Transaction model
 import 'disbursement_details.dart';
-import 'user_menu.dart'; // Import the DisbursementDetailsScreen
+import 'user_menu.dart';
+import 'user_upload.dart'; // Import the DisbursementDetailsScreen
 
-
-class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+class NoSupportScreen extends StatefulWidget {
+  const NoSupportScreen({Key? key}) : super(key: key);
 
   @override
-  _HomePageState createState() => _HomePageState();
+  _NoSupportScreenState createState() => _NoSupportScreenState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _NoSupportScreenState extends State<NoSupportScreen> {
   late List<Transaction> transactions;
   late bool isLoading;
   String selectedColumn = 'docRef';
@@ -26,7 +25,7 @@ class _HomePageState extends State<HomePage> {
   bool isAscending = true;
   int currentPage = 1;
   int rowsPerPage = 20;
-  int _selectedIndex = 0; // Add this line to manage the active tab state
+  int _selectedIndex = 1; // Add this line to manage the active tab state
 
   @override
   void initState() {
@@ -36,8 +35,7 @@ class _HomePageState extends State<HomePage> {
     fetchTransactions();
   }
 
-
-void _onItemTapped(int index) {
+  void _onItemTapped(int index) {
     if (_selectedIndex == index) return;
 
     setState(() {
@@ -51,7 +49,7 @@ void _onItemTapped(int index) {
           MaterialPageRoute(builder: (context) => const HomePage()),
         );
         break;
-      case 1:
+       case 1:
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const NoSupportScreen()),
@@ -69,13 +67,15 @@ void _onItemTapped(int index) {
   Future<void> fetchTransactions() async {
     try {
       final response = await http.get(Uri.parse(
-          'http://127.0.0.1/localconnect/fetch_transaction_data.php'));
+          'http://192.168.68.111/localconnect/fetch_transaction_data.php'));
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200) { 
         setState(() {
           final List<dynamic> data = json.decode(response.body);
-          transactions =
-              data.map((json) => Transaction.fromJson(json)).toList();
+          transactions = data
+              .map((json) => Transaction.fromJson(json))
+              .where((transaction) => transaction.onlineProcessingStatus == 'UND')
+              .toList();
           isLoading = false;
         });
       } else {
@@ -177,7 +177,6 @@ void _onItemTapped(int index) {
 
     return Scaffold(
       appBar: AppBar(
-        
         backgroundColor: Color.fromARGB(255, 79, 128, 189),
         toolbarHeight: 77,
         title: Row(
@@ -192,7 +191,7 @@ void _onItemTapped(int index) {
                 ),
                 const SizedBox(width: 8),
                 const Text(
-                  'For Uploading',
+                  'No Support Required',
                   style: TextStyle(
                     fontSize: 16,
                     color: Color.fromARGB(255, 233, 227, 227),

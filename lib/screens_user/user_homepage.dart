@@ -1,3 +1,6 @@
+import 'package:ojt/transmittal_screens/fetching_data.dart';
+
+import 'no_support.dart';
 import 'user_menu.dart';
 import 'user_upload.dart';
 import 'package:flutter/material.dart';
@@ -27,10 +30,10 @@ class _UserHomePageState extends State<UserHomePage> {
         );
         break;
       case 1:
-        // Navigator.pushReplacement(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => DisbursementDetailsScreen()),
-        // );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const NoSupportScreen()),
+        );
         break;
       case 2:
         Navigator.pushReplacement(
@@ -137,13 +140,12 @@ class _UserHomePageState extends State<UserHomePage> {
                   label: 'items [month]',
                   icon: Icons.history,
                   onTap: () {
-                    // Replace with actual screen
-                    // Navigator.push(
-                    //   context,
-                    //   MaterialPageRoute(
-                    //     builder: (context) => DisbursementDetailsScreen(),
-                    //   ),
-                    // );
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const TransmittalHomePage(),
+                      ),
+                    );
                   },
                 ),
                 SizedBox(height: 20), // Add spacing between cards

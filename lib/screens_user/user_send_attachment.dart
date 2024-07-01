@@ -1,20 +1,24 @@
 import 'dart:convert';
 import 'dart:io';
-
+import 'dart:typed_data';
+import 'package:file_picker/file_picker.dart';
+import 'dart:developer' as developer;
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../admin_screens/notifications.dart';
 import '../models/user_transaction.dart';
-import 'user_menu.dart';
-import 'user_upload.dart';
-import 'view_files.dart';
+import '../screens_user/user_homepage.dart';
+import '../screens_user/user_menu.dart';
+import '../screens_user/user_upload.dart';
+import 'no_support.dart';
 import 'user_add_attachment.dart';
+import 'view_files.dart';
 
 class UserSendAttachment extends StatefulWidget {
   final Transaction transaction;
   final List selectedDetails;
-  final List<File> attachments; // Receive the attachments
+  final List<Map<String, String>> attachments;
 
   const UserSendAttachment({
     Key? key,
@@ -27,19 +31,21 @@ class UserSendAttachment extends StatefulWidget {
   _UserSendAttachmentState createState() => _UserSendAttachmentState();
 }
 
-String createDocRef(String docType, String docNo) {
-  return '$docType#$docNo';
-}
-
 class _UserSendAttachmentState extends State<UserSendAttachment> {
   int _selectedIndex = 0;
   bool _showRemarks = false;
   bool _isLoading = false;
-  List<File> attachments = [];
+
+  List<Map<String, String>> attachments = [];
 
   @override
   void initState() {
     super.initState();
+    attachments = widget.attachments; // Initialize attachments list
+  }
+
+  String createDocRef(String docType, String docNo) {
+    return '$docType#$docNo';
   }
 
   String formatDate(DateTime date) {
@@ -71,10 +77,10 @@ class _UserSendAttachmentState extends State<UserSendAttachment> {
         );
         break;
       case 1:
-        // Navigator.pushReplacement(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => DisbursementDetailsScreen()),
-        // );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const NoSupportScreen()),
+        );
         break;
       case 2:
         Navigator.pushReplacement(
@@ -85,65 +91,145 @@ class _UserSendAttachmentState extends State<UserSendAttachment> {
     }
   }
 
-  Future<void> _uploadTransaction() async {
-    setState(() {
-      _isLoading = true; // Show loading indicator
-    });
-
-    try {
-      var uri = Uri.parse(
-          'http://192.168.68.111/localconnect/UserUploadUpdate/update_OPS.php');
-      var request = http.Request('POST', uri);
-
-      // URL-encode the values
-      var requestBody =
-          'doc_type=${Uri.encodeComponent(widget.transaction.docType)}&doc_no=${Uri.encodeComponent(widget.transaction.docNo)}&date_trans=${Uri.encodeComponent(widget.transaction.dateTrans)}';
-
-      request.headers['Content-Type'] = 'application/x-www-form-urlencoded';
-      request.body = requestBody;
-
-      var response = await request.send();
-
-      if (response.statusCode == 200) {
-        var responseBody = await response.stream.bytesToString();
-        var result = jsonDecode(responseBody);
-
-        if (result['status'] == 'Success') {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(result['message'])),
-          );
-
-          // Navigate back to previous screen (DisbursementDetailsScreen)
-          Navigator.pop(context);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(result['message'])),
-          );
-        }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(
-                  'Transaction upload failed with status: ${response.statusCode}')),
-        );
-      }
-    } catch (e) {
-      print('Error uploading transaction: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content:
-                Text('Error uploading transaction. Please try again later.')),
-      );
-    } finally {
+  Future<void> _uploadTransactionOrFile() async {
+    if (widget.transaction != null && attachments != null) {
       setState(() {
-        _isLoading = false; // Hide loading indicator
+        _isLoading = true; // Show loading indicator
       });
+
+      bool allUploadedSuccessfully = true;
+      List<String> errorMessages = [];
+
+      try {
+        var uri = Uri.parse(
+            'http://192.168.68.114/localconnect/UserUploadUpdate/update_TS.php');
+
+        for (var attachment in attachments.toList()) {
+          if (attachment['name'] != null &&
+              attachment['bytes'] != null &&
+              attachment['size'] != null) {
+            var request = http.MultipartRequest('POST', uri);
+
+            // Set form fields
+            request.fields['doc_type'] = widget.transaction.docType.toString();
+            request.fields['doc_no'] = widget.transaction.docNo.toString();
+            request.fields['date_trans'] =
+                widget.transaction.dateTrans.toString();
+
+            // Prepare the file to be uploaded
+            var pickedFile = PlatformFile(
+              name: attachment['name']!,
+              bytes: Uint8List.fromList(utf8.encode(attachment['bytes']!)),
+              size: int.parse(attachment['size']!),
+            );
+
+            if (pickedFile.bytes != null) {
+              // Attach file to the request
+              request.files.add(
+                http.MultipartFile.fromBytes(
+                  'file',
+                  pickedFile.bytes!,
+                  filename: pickedFile.name,
+                ),
+              );
+
+              developer.log('Uploading file: ${pickedFile.name}');
+
+              // Send the request and handle the response
+              var response = await request.send();
+
+              if (response.statusCode == 200) {
+                var responseBody = await response.stream.bytesToString();
+                developer.log('Upload response: $responseBody');
+
+                // Check if the response body is a valid JSON
+                if (responseBody.startsWith('{') &&
+                    responseBody.endsWith('}')) {
+                  var result = jsonDecode(responseBody);
+
+                  if (result['status'] == 'success') {
+                    setState(() {
+                      // Update UI state after successful upload
+                      attachments.removeWhere(
+                          (element) => element['name'] == pickedFile.name);
+                      attachments
+                          .add({'name': pickedFile.name, 'status': 'Uploaded'});
+                      developer.log(
+                          'Attachments array after uploading: $attachments');
+                    });
+                  } else {
+                    allUploadedSuccessfully = false;
+                    errorMessages.add(result['message']);
+                    developer.log('File upload failed: ${result['message']}');
+                  }
+                } else {
+                  allUploadedSuccessfully = false;
+                  errorMessages.add('Invalid response from server');
+                  developer.log('Invalid response from server: $responseBody');
+                }
+              } else {
+                allUploadedSuccessfully = false;
+                errorMessages.add(
+                    'File upload failed with status: ${response.statusCode}');
+                developer.log(
+                    'File upload failed with status: ${response.statusCode}');
+              }
+            } else {
+              allUploadedSuccessfully = false;
+              errorMessages.add('Error: attachment bytes are null or empty');
+              developer.log('Error: attachment bytes are null or empty');
+            }
+          } else {
+            allUploadedSuccessfully = false;
+            errorMessages.add('Error: attachment name, bytes or size is null');
+            developer.log('Error: attachment name, bytes or size is null');
+          }
+        }
+
+        // Show single dialog based on the overall upload result
+        if (allUploadedSuccessfully) {
+          _showDialog(context, 'Success', 'All files uploaded successfully!');
+        } else {
+          _showDialog(context, 'Error',
+              'Error uploading files:\n${errorMessages.join('\n')}');
+        }
+      } catch (e) {
+        developer.log('Error uploading file or transaction: $e');
+        _showDialog(
+            context, 'Error', 'Error uploading file. Please try again later.');
+      } finally {
+        setState(() {
+          _isLoading = false; // Hide loading indicator
+        });
+      }
+    } else {
+      developer.log('Error: widget.transaction or attachments is null');
+      _showDialog(
+          context, 'Error', 'Error uploading file. Please try again later.');
     }
+  }
+
+  void _showDialog(BuildContext context, String title, String content) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(content),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget buildDetailsCard(Transaction detail) {
     return Container(
-      height: 420,
+      height: 450,
       child: Card(
         semanticContainer: true,
         borderOnForeground: true,
@@ -174,9 +260,9 @@ class _UserSendAttachmentState extends State<UserSendAttachment> {
                               )),
                     );
 
-                    if (result != null && result is List<File>) {
+                    if (result != null && result is List<Map<String, String>>) {
                       setState(() {
-                        attachments.addAll(result);
+                        widget.attachments.addAll(result);
                       });
                     }
                   },
@@ -223,12 +309,11 @@ class _UserSendAttachmentState extends State<UserSendAttachment> {
       children: [
         buildTableRow('Doc Ref', createDocRef(detail.docType, detail.docNo)),
         buildTableRow('Date', formatDate(detail.transDate)),
-        buildTableRow('Payee', detail.transactingParty),
         buildTableRow('Check', detail.checkNumber),
         buildTableRow('Bank', detail.bankName),
         buildTableRow('Amount', formatAmount(detail.checkAmount)),
         buildTableRow('Status', detail.transactionStatus),
-        if (_showRemarks) buildEditableTableRow('Remarks', detail.remarks),
+        buildTableRow('Remarks', detail.remarks),
       ],
     );
   }
@@ -257,167 +342,152 @@ class _UserSendAttachmentState extends State<UserSendAttachment> {
     );
   }
 
-  TableRow buildEditableTableRow(String label, String value) {
-    return TableRow(
-      children: [
-        buildTableCell(label),
-        TableCell(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextFormField(
-              initialValue: value,
-              decoration: InputDecoration(
-                hintText: 'Enter remarks',
-                contentPadding: EdgeInsets.symmetric(horizontal: 10),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                filled: true,
-                fillColor: Colors.grey[300],
+
+@override
+Widget build(BuildContext context) {
+  Size screenSize = MediaQuery.of(context).size;
+
+  return Scaffold(
+    appBar: AppBar(
+      backgroundColor: Color.fromARGB(255, 79, 128, 189),
+      toolbarHeight: 77,
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Image.asset(
+                'logo.png',
+                width: 60,
+                height: 55,
               ),
-              enabled: true,
-            ),
+              const SizedBox(width: 8),
+              const Text(
+                'For Uploading',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontFamily: 'Tahoma',
+                  color: Color.fromARGB(255, 233, 227, 227),
+                ),
+              ),
+            ],
           ),
-        ),
-      ],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    Size screenSize = MediaQuery.of(context).size;
-
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 79, 128, 189),
-        toolbarHeight: 77,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Image.asset(
-                  'logo.png',
-                  width: 60,
-                  height: 55,
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'For Uploading',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontFamily: 'Tahoma',
-                    color: Color.fromARGB(255, 233, 227, 227),
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Container(
-                  margin: EdgeInsets.only(right: screenSize.width * 0.02),
-                  child: IconButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => NotificationScreen()),
-                      );
-                    },
-                    icon: const Icon(
-                      Icons.notifications,
-                      size: 24,
-                      color: Color.fromARGB(255, 233, 227, 227),
-                    ),
-                  ),
-                ),
-                IconButton(
-                  onPressed: () {},
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Container(
+                margin: EdgeInsets.only(right: screenSize.width * 0.02),
+                child: IconButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => NotificationScreen()),
+                    );
+                  },
                   icon: const Icon(
-                    Icons.person,
+                    Icons.notifications,
                     size: 24,
                     color: Color.fromARGB(255, 233, 227, 227),
                   ),
                 ),
-              ],
-            ),
-          ],
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            buildDetailsCard(widget.transaction),
-            _buildButtons(context),
-          ],
-        ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        selectedItemColor: Color.fromARGB(255, 79, 128, 189),
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.upload_file_outlined),
-            label: 'Upload',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.quiz),
-            label: 'No Support',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu_sharp),
-            label: 'Menu',
+              ),
+              IconButton(
+                onPressed: () {},
+                icon: const Icon(
+                  Icons.person,
+                  size: 24,
+                  color: Color.fromARGB(255, 233, 227, 227),
+                ),
+              ),
+            ],
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildButtons(BuildContext context) {
-    return Column(
-      children: [
-        SizedBox(height: 20),
-        ElevatedButton.icon(
-          onPressed: () {
-            print('View Files button pressed.');
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ViewFilesPage(
-                  attachments: attachments
-                      .map((file) => {
-                            'name': file.path
-                                .split('/')
-                                .last, // extract file name from path
-                            'status':
-                                'Uploaded', // or any other status you want to display
-                          })
-                      .toList(),
+    ),
+    body: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          buildDetailsCard(widget.transaction),
+          Spacer(), // Pushes the buttons to the bottom
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16.0), // Add some bottom padding
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ViewFilesPage(
+                            attachments: widget.attachments,
+                            onDelete: (int index) {
+                              setState(() {
+                                attachments.removeAt(index);
+                              });
+                              developer.log(
+                                  'Attachment removed from UserSendAttachment: $index');
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                    icon: Icon(Icons.folder_open),
+                    label: Text('View Files'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey[400],
+                    ),
+                  ),
                 ),
-              ),
-            );
-          },
-          icon: Icon(Icons.folder_open),
-          label: Text('View Files'),
-          style: ElevatedButton.styleFrom(
-            minimumSize: Size(double.infinity, 50),
-            backgroundColor: Colors.grey[400],
+                SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _isLoading
+                        ? null
+                        : () {
+                            _uploadTransactionOrFile();
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => UserHomePage(key: Key('value')),
+                              ),
+                            );
+                          },
+                    icon: Icon(Icons.send),
+                    label: Text('Send'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color.fromARGB(255, 79, 129, 189),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
+        ],
+      ),
+    ),
+    bottomNavigationBar: BottomNavigationBar(
+      currentIndex: _selectedIndex,
+      selectedItemColor: Color.fromARGB(255, 79, 128, 189),
+      onTap: _onItemTapped,
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.upload_file_outlined),
+          label: 'Upload',
         ),
-        SizedBox(height: 20),
-        ElevatedButton.icon(
-          onPressed: _isLoading ? null : _uploadTransaction,
-          icon: Icon(Icons.send),
-          label: Text('Send'),
-          style: ElevatedButton.styleFrom(
-            minimumSize: Size(double.infinity, 50),
-            backgroundColor: Colors.grey[400],
-          ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.quiz),
+          label: 'No Support',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.menu_sharp),
+          label: 'Menu',
         ),
       ],
-    );
-  }
+    ),
+  );
+}
 }

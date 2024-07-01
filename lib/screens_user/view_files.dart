@@ -1,81 +1,51 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
-import 'user_menu.dart';
-import 'user_upload.dart';
+import 'package:flutter/material.dart';
+import 'package:path/path.dart';
+import 'package:flutter/services.dart' show rootBundle;
+
+import '../admin_screens/notifications.dart';
 
 class ViewFilesPage extends StatefulWidget {
-  final List<Map<String, String>> attachments; // Store file information as a list of maps
+  final List<Map<String, String>> attachments;
+  final Function(int index) onDelete;
 
-  const ViewFilesPage({Key? key, required this.attachments}) : super(key: key);
- 
+  const ViewFilesPage({
+    Key? key,
+    required this.attachments,
+    required this.onDelete,
+  }) : super(key: key);
+
   @override
   _ViewFilesPageState createState() => _ViewFilesPageState();
 }
 
 class _ViewFilesPageState extends State<ViewFilesPage> {
-  int _selectedIndex = 0;
+  List<Map<String, String>> _attachments = [];
 
-  void _onItemTapped(int index) {
-    if (_selectedIndex == index) return;
-
-    setState(() {
-      _selectedIndex = index;
-    });
-
-    switch (index) {
-      case 0:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
-        );
-        break;
-      case 1:
-        // Navigator.pushReplacement(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => DisbursementDetailsScreen()),
-        // );
-        break;
-      case 2:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MenuWindow()),
-        );
-        break;
-    }
+  @override
+  void initState() {
+    super.initState();
+    _attachments = List.from(widget.attachments);
   }
 
-  Future<List<Attachment>> _fetchAttachments() async {
-    try {
-      var url = Uri.parse(
-          'http://192.168.68.111/localconnect/view_attachment.php');
-      var response = await http.get(url);
+  void _removeAttachment(int index) {
+    setState(() {
+      _attachments.removeAt(index);
+    });
+    widget.onDelete(index); // Call the callback function
+  }
 
-      if (response.statusCode == 200) {
-        var jsonData = jsonDecode(response.body);
-        if (jsonData is List) {
-          return jsonData
-              .map((attachment) => Attachment.fromJson(attachment))
-              .toList();
-        } else {
-          throw Exception('Unexpected response format');
-        }
-      } else {
-        throw Exception('Failed to load attachments: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Failed to fetch attachments: $e');
-    }
+  Future<String> _loadAsset(String path) async {
+    return await rootBundle.loadString(path);
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
     Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 79, 128, 189),
+        backgroundColor: Color.fromARGB(255, 79, 128, 189),
         toolbarHeight: 77,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -92,6 +62,7 @@ class _ViewFilesPageState extends State<ViewFilesPage> {
                   'For Uploading',
                   style: TextStyle(
                     fontSize: 16,
+                    fontFamily: 'Tahoma',
                     color: Color.fromARGB(255, 233, 227, 227),
                   ),
                 ),
@@ -104,14 +75,15 @@ class _ViewFilesPageState extends State<ViewFilesPage> {
                   margin: EdgeInsets.only(right: screenSize.width * 0.02),
                   child: IconButton(
                     onPressed: () {
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(builder: (context) => NotificationScreen()),
-                      // );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => NotificationScreen()),
+                      );
                     },
                     icon: const Icon(
                       Icons.notifications,
-                      size: 24, // Adjust size as needed
+                      size: 24,
                       color: Color.fromARGB(255, 233, 227, 227),
                     ),
                   ),
@@ -120,7 +92,7 @@ class _ViewFilesPageState extends State<ViewFilesPage> {
                   onPressed: () {},
                   icon: const Icon(
                     Icons.person,
-                    size: 24, // Adjust size as needed
+                    size: 24,
                     color: Color.fromARGB(255, 233, 227, 227),
                   ),
                 ),
@@ -129,64 +101,91 @@ class _ViewFilesPageState extends State<ViewFilesPage> {
           ],
         ),
       ),
-      body: FutureBuilder<List<Attachment>>(
-        future: _fetchAttachments(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No files uploaded.'));
-          } else {
-            var attachments = snapshot.data!;
-            return ListView.builder(
-              itemCount: attachments.length,
-              itemBuilder: (context, index) {
-                return Card(
-                  child: ListTile(
-                    title: Text(attachments[index].fileName),
-                    subtitle: Text(attachments[index].filePath),
+      body: ListView.builder(
+        itemCount: _attachments.length,
+        itemBuilder: (context, index) {
+          final attachment = _attachments[index];
+          return Dismissible(
+            key: Key(attachment['name']!),
+            onDismissed: (direction) {
+              _removeAttachment(index);
+              // Handle the removal of the attachment
+              // e.g., remove from the database or file system
+            },
+            background: Container(
+              color: Colors.red,
+              alignment: AlignmentDirectional.centerEnd,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 20),
+                child: Icon(
+                  Icons.delete,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            child: Container(
+              margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+              padding: EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    spreadRadius: 2,
+                    blurRadius: 5,
+                    offset: Offset(0, 3),
                   ),
-                );
-              },
-            );
-          }
+                ],
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.attach_file),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          attachment['name']!,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(attachment['status']!),
+                      ],
+                    ),
+                  ),
+                  if (attachment['status'] == 'Uploaded')
+                    GestureDetector(
+                      onTap: () async {
+                        final imagePath = attachment['path'];
+                        final imageData = await _loadAsset(imagePath!);
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              title: Text('Image'),
+                              content: Image.memory(base64Decode(imageData)),
+                            );
+                          },
+                        );
+                      },
+                      child: const Icon(Icons.remove_red_eye),
+                    ),
+                  IconButton(
+                    icon: Icon(Icons.delete, color: Colors.red),
+                    onPressed: () {
+                      _removeAttachment(index);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          );
         },
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        selectedItemColor: const Color.fromARGB(255, 79, 128, 189),
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.upload_file_outlined),
-            label: 'Upload',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.quiz),
-            label:'No Support',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu_sharp),
-            label: 'Menu',
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class Attachment {
-  final String fileName;
-  final String filePath;
-
-  Attachment({required this.fileName, required this.filePath});
-
-  factory Attachment.fromJson(Map<String, dynamic> json) {
-    return Attachment(
-      fileName: json['file_name'],
-      filePath: json['file_path'],
     );
   }
 }

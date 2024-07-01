@@ -9,7 +9,8 @@ class Transaction {
   final String checkBankDrawee;
   final String checkNumber;
   final String bankName;
-  final String dateTrans; // Add this line
+  final String dateTrans;
+  String? onlineProcessingStatus; // Make it nullable
 
   Transaction({
     required this.docType,
@@ -22,7 +23,8 @@ class Transaction {
     required this.checkBankDrawee,
     required this.checkNumber,
     required this.bankName,
-    required this.dateTrans, // Add this line
+    required this.dateTrans,
+    this.onlineProcessingStatus, // Make it optional in the constructor
   });
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
@@ -40,7 +42,8 @@ class Transaction {
       checkBankDrawee: json['check_drawee_bank'].toString(),
       checkNumber: json['check_no'].toString(),
       bankName: json['check_drawee_bank'].toString(),
-      dateTrans: json['date_trans'].toString(), // Initialize docTrans field
+      dateTrans: json['date_trans'].toString(),
+      onlineProcessingStatus: json['online_processing_status']?.toString(), // Initialize with null safety
     );
   }
 }

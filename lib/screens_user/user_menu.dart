@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'no_support.dart';
 import 'user_upload.dart';
-
+import 'user_homepage.dart';
+import '/loginScreen.dart';
 class MenuWindow extends StatefulWidget {
   const MenuWindow({Key? key}) : super(key: key);
 
@@ -22,14 +24,14 @@ class _MenuState extends State<MenuWindow> {
       case 0:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
+          MaterialPageRoute(builder: (context) => const UserHomePage()),
         );
         break;
       case 1:
-        // Navigator.pushReplacement(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => const DisbursementCheque()),
-        // );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const NoSupportScreen()),
+        );
         break;
       case 2:
         Navigator.pushReplacement(
@@ -39,16 +41,16 @@ class _MenuState extends State<MenuWindow> {
         break;
     }
   }
-
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
+    double circleDiameter = screenSize.width * 0.4;
 
     return Scaffold(
       appBar: AppBar(
-        
+        automaticallyImplyLeading: false,
         backgroundColor: const Color.fromARGB(255, 79, 128, 189),
-        toolbarHeight: 77,
+        toolbarHeight: screenSize.height * 0.1,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -56,8 +58,8 @@ class _MenuState extends State<MenuWindow> {
               children: [
                 Image.asset(
                   'logo.png',
-                  width: 60,
-                  height: 55,
+                  width: screenSize.width * 0.15, 
+                  height: screenSize.height * 0.1,
                 ),
                 const SizedBox(width: 8),
                 const Text(
@@ -78,12 +80,13 @@ class _MenuState extends State<MenuWindow> {
                     onPressed: () {
                       // Navigator.push(
                       //   context,
-                      //   MaterialPageRoute(builder: (context) => NotificationScreen()),
+                      //   MaterialPageRoute(
+                      //       builder: (context) => NotificationScreen()),
                       // );
                     },
                     icon: const Icon(
                       Icons.notifications,
-                      size: 24, // Adjust size as needed
+                      size: 24,
                       color: Color.fromARGB(255, 233, 227, 227),
                     ),
                   ),
@@ -92,7 +95,7 @@ class _MenuState extends State<MenuWindow> {
                   onPressed: () {},
                   icon: const Icon(
                     Icons.person,
-                    size: 24, // Adjust size as needed
+                    size: 24,
                     color: Color.fromARGB(255, 233, 227, 227),
                   ),
                 ),
@@ -101,233 +104,146 @@ class _MenuState extends State<MenuWindow> {
           ],
         ),
       ),
-      body: Container(
-        height: double.infinity,
-        width: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color.fromARGB(255, 255, 255, 255),
-              Color.fromARGB(255, 255, 255, 255),
+      body: SingleChildScrollView(
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: screenSize.height * 0.05),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Stack(
+                children: [
+                  Container(
+                    width: circleDiameter,
+                    height: circleDiameter,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                          color: Color.fromARGB(255, 79, 128, 189),
+                          width: screenSize.width * 0.0158),
+                    ),
+                    child: Center(
+                      child: Icon(
+                        Icons.person,
+                        size: screenSize.width * 0.16,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 5,
+                    right: 5,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.blue,
+                          width: screenSize.width * 0.0108,
+                        ),
+                      ),
+                      padding: EdgeInsets.all(screenSize.width * 0.02),
+                      child: Icon(
+                        Icons.camera_alt,
+                        size: screenSize.width * 0.05,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: EdgeInsets.all(screenSize.width * 0.01),
+                child: Text(
+                  '[Name]',
+                  style: TextStyle(fontSize: 17),
+                ),
+              ),
+              Container(
+                child: Text(
+                  'Uploader',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              SizedBox(
+                height: screenSize.height * 0.025,
+              ),
+              InkWell(
+                onTap: () {
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(
+                  //     builder: (context) => TransactionsScreen(),
+                  //   ),
+                  // );
+                },
+                child: _buildOption(screenSize, Icons.fact_check_outlined, 'History'),
+              ),
+              _buildOption(screenSize, Icons.fingerprint_rounded, 'Biometrics'),
+              _buildOption(screenSize, Icons.security, 'Change Password'),
+              InkWell(
+                onTap: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LoginScreen(),
+                    ),
+                  );
+                },
+                child: _buildOption(screenSize, Icons.login_outlined, 'Log out'),
+              ),
+              SizedBox(
+                height: screenSize.height * 0.15,
+              ),
             ],
           ),
         ),
-        child: Column(
-          children: [
-            SizedBox(height: screenSize.height * 0.05), // Add space at the top
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-              width: screenSize.width * 0.4,
-              height: screenSize.height * 0.18,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(screenSize.width *
-                    0.4 *
-                    0.5), // Radius half of the container width
-                border: Border.all(
-                  color: const Color.fromARGB(255, 79, 128, 189),
-                  width: screenSize.width * 0.0158,
-                ),
-              ),
-              child: Icon(
-                Icons.person,
-                size: screenSize.width *
-                    0.4 *
-                    0.4, // Icon size relative to container width
-              ),
-            ),
-            SizedBox(
-                height: screenSize.height *
-                    0.03), // Space between container and buttons
-            Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {},
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(Icons.check_circle_outlined),
-                              SizedBox(width: 10),
-                              Text(
-                                'Approval',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Color.fromRGBO(0, 0, 0, 1),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.blueAccent,
-                      ),
-                    ),
-                    SizedBox(height: screenSize.height * 0.015),
-                    ElevatedButton(
-                      onPressed: () {},
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(Icons.fact_check_outlined),
-                              SizedBox(width: 5),
-                              Text(
-                                'Transmittal',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.blueAccent,
-                      ),
-                    ),
-                    SizedBox(height: screenSize.height * 0.015),
-                    ElevatedButton(
-                      onPressed: () {},
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(Icons.upload_file),
-                              SizedBox(width: 5),
-                              Text(
-                                'Document Uploading',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.blueAccent,
-                      ),
-                    ),
-                    SizedBox(height: screenSize.height * 0.015),
-                    ElevatedButton(
-                      onPressed: () {},
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(Icons.fingerprint_rounded),
-                              SizedBox(width: 5),
-                              Text(
-                                'Biometrics',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.blueAccent,
-                      ),
-                    ),
-                    SizedBox(height: screenSize.height * 0.015),
-                    ElevatedButton(
-                      onPressed: () {},
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(Icons.security),
-                              SizedBox(width: 5),
-                              Text(
-                                'Change Password',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.blueAccent,
-                      ),
-                    ),
-                    SizedBox(height: screenSize.height * 0.015),
-                    ElevatedButton(
-                      onPressed: () {},
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(Icons.login_outlined),
-                              SizedBox(width: 5),
-                              Text(
-                                'Log out',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.blueAccent,
-                      ),
-                    ),
-                    SizedBox(height: screenSize.height * 0.015),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        selectedItemColor: Color.fromARGB(255, 79, 128, 189),
-        onTap: _onItemTapped,
-        items: const [
+        items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.upload_file_outlined),
             label: 'Upload',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.quiz),
+            icon: Icon(Icons.task_sharp),
             label: 'No Support',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.menu_sharp),
             label: 'Menu',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: const Color.fromARGB(255, 0, 110, 255),
+        onTap: _onItemTapped,
+      ),
+    );
+  }
+
+  Widget _buildOption(Size screenSize, IconData iconData, String text) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+          horizontal: screenSize.width * 0.05,
+          vertical: screenSize.height * 0.02),
+      width: screenSize.width * 0.98,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.white),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(iconData),
+              SizedBox(
+                width: screenSize.width * 0.02,
+              ),
+              Text(
+                text,
+                style: TextStyle(
+                    fontSize: 15, color: const Color.fromARGB(255, 0, 0, 0)),
+              ),
+            ],
           ),
         ],
       ),

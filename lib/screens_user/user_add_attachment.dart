@@ -1,7 +1,16 @@
+import 'dart:convert';
 import 'dart:developer' as developer;
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:http/http.dart' as http;
+import 'package:mime/mime.dart';
+import 'package:http_parser/http_parser.dart';
+
 import '../models/user_transaction.dart';
+import 'no_support.dart';
 import 'user_homepage.dart';
 import 'user_menu.dart';
 import 'user_send_attachment.dart';
@@ -22,7 +31,7 @@ class UserAddAttachment extends StatefulWidget {
 
 class _UserAddAttachmentState extends State<UserAddAttachment> {
   int _selectedIndex = 0; // Initialize with the correct index for Upload
-  List<Map<String, String>> attachments = [];
+  List<Map<String, dynamic>> attachments = [];
   String? _fileName;
   PlatformFile? _pickedFile;
   bool _isLoading = false;
@@ -42,10 +51,10 @@ class _UserAddAttachmentState extends State<UserAddAttachment> {
         );
         break;
       case 1:
-        // Navigator.pushReplacement(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => DisbursementDetailsScreen()),
-        // );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const NoSupportScreen()),
+        );
         break;
       case 2:
         Navigator.pushReplacement(
@@ -58,16 +67,23 @@ class _UserAddAttachmentState extends State<UserAddAttachment> {
 
   Future<void> _pickFile() async {
     developer.log('Picking file...');
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    FilePickerResult? result =
+        await FilePicker.platform.pickFiles(allowMultiple: true);
 
     if (result != null && result.files.isNotEmpty) {
       setState(() {
-        _pickedFile = result.files.first;
-        _fileName = _pickedFile?.name ?? 'Unknown';
-        attachments.add({'name': _fileName!, 'status': 'Selected'});
-        developer.log('Attachments array after adding: $attachments');
+        for (var file in result.files) {
+          _fileName = file.name ?? 'Unknown';
+          attachments.add({
+            'name': _fileName!,
+            'status': 'Selected',
+            'bytes': file.bytes,
+            'size': file.size,
+          });
+        }
+      //  developer.log('Attachments array after adding: $attachments');
       });
-      developer.log('File picked: $_fileName');
+       developer.log('Files picked: ${result.files.length}');
     } else {
       developer.log('File picking cancelled');
     }
@@ -93,68 +109,64 @@ class _UserAddAttachmentState extends State<UserAddAttachment> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    Size screenSize = MediaQuery.of(context).size;
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: const Color.fromARGB(255, 79, 128, 189),
-        toolbarHeight: 77,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Image.asset(
-                  'logo.png',
-                  width: 60,
-                  height: 55,
+  Size screenSize = MediaQuery.of(context).size;
+  return Scaffold(
+    appBar: AppBar(
+      backgroundColor: const Color.fromARGB(255, 79, 128, 189),
+      toolbarHeight: 77,
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Image.asset(
+                'logo.png',
+                width: 60,
+                height: 55,
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'For Uploading',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontFamily: 'Tahoma',
+                  color: Color.fromARGB(255, 233, 227, 227),
                 ),
-                const SizedBox(width: 8),
-                const Text(
-                  'For Uploading',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontFamily: 'Tahoma',
-                    color: Color.fromARGB(255, 233, 227, 227),
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Container(
-                  margin: EdgeInsets.only(right: screenSize.width * 0.02),
-                  child: IconButton(
-                    onPressed: () {
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //       builder: (context) => NotificationScreen()),
-                      // );
-                    },
-                    icon: const Icon(
-                      Icons.notifications,
-                      size: 24,
-                      color: Color.fromARGB(255, 233, 227, 227),
-                    ),
-                  ),
-                ),
-                IconButton(
-                  onPressed: () {},
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Container(
+                margin: EdgeInsets.only(right: screenSize.width * 0.02),
+                child: IconButton(
+                  onPressed: () {
+                    // Handle notifications button tap
+                  },
                   icon: const Icon(
-                    Icons.person,
+                    Icons.notifications,
                     size: 24,
                     color: Color.fromARGB(255, 233, 227, 227),
                   ),
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+              IconButton(
+                onPressed: () {
+                  // Handle user profile button tap
+                },
+                icon: const Icon(
+                  Icons.person,
+                  size: 24,
+                  color: Color.fromARGB(255, 233, 227, 227),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
-      body: Column(
+    ),
+     body: Column(
         children: [
           Expanded(
             child: Padding(
@@ -209,11 +221,16 @@ class _UserAddAttachmentState extends State<UserAddAttachment> {
                     ),
                   const SizedBox(height: 20.0),
                   for (var attachment in attachments)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 5.0),
-                      child: _buildAttachmentItem(
-                          attachment['name']!, attachment['status']!),
-                    ),
+                    if (attachment['name'] != null &&
+                        attachment['bytes'] != null &&
+                        attachment['size'] != null)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 5.0),
+                        child: _buildAttachmentItem(
+                          attachment['name'],
+                          attachment['status'],
+                        ),
+                      ),
                   const Spacer(),
                   Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -232,20 +249,48 @@ class _UserAddAttachmentState extends State<UserAddAttachment> {
                         ),
                         ElevatedButton(
                           onPressed: () {
-                            Navigator.pushReplacement(
+                            List<Map<String, String>> attachmentsString =
+                                attachments
+                                    .map((attachment) => attachment.map(
+                                          (key, value) =>
+                                              MapEntry(key, value.toString()),
+                                        ))
+                                    .toList();
+
+                            for (var attachment in attachmentsString) {
+                              if (attachment['name'] == null ||
+                                  attachment['name']!.isEmpty) {
+                                developer.log('Error: attachment name is null or empty');
+                                return;
+                              }
+
+                              if (attachment['bytes'] == null) {
+                                developer.log('Error: attachment bytes are null');
+                                return;
+                              }
+
+                              if (attachment['size'] == null ||
+                                  attachment['size']!.isEmpty ||
+                                  int.parse(attachment['size']!) <= 0) {
+                                developer.log('Error: attachment size is null or invalid');
+                                return;
+                              }
+                            }
+
+                            Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => UserSendAttachment(
                                   transaction: widget.transaction,
                                   selectedDetails: [],
-                                  attachments: attachments, // Pass the attachments list
+                                  attachments: attachmentsString,
                                 ),
                               ),
                             );
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                          ),
+                           backgroundColor: Color.fromARGB(255, 79, 129, 189),
+                         ),
                           child: const Text('Attach File'),
                         ),
                       ],
@@ -283,7 +328,9 @@ class _UserAddAttachmentState extends State<UserAddAttachment> {
     );
   }
 
-  Widget _buildAttachmentItem(String fileName, String status) {
+  Widget _buildAttachmentItem(String? fileName, String? status) {
+    if (fileName == null || status == null) return Container();
+
     return Row(
       children: [
         Container(
