@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'screens_user/user_homepage.dart';
+import '/screens_user/transmitter_homepage.dart';
+import '/screens_user/uploader_homepage.dart';
 import 'admin_screens/Admin_Homepage.dart';
 
 
@@ -36,15 +37,23 @@ class _LoginScreenState extends State<LoginScreen> {
         final jsonResponse = jsonDecode(response.body);
         if (jsonResponse['status'] == 'success') {
           String userRank = jsonResponse['user_rank'];
+          String approval_access = jsonResponse['approval_access'];
+
           if (userRank.toLowerCase() == 'admin') {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => AdminHomePage()),
+              MaterialPageRoute(builder: (context) => const UploaderHomePage()),
             );
-          } else {
+          }
+          else if (userRank.toLowerCase() == 'user' && approval_access.toLowerCase() == 'uploader'){
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => UserHomePage()),
+              MaterialPageRoute(builder: (context) => const TransmitterHomePage()),
+            );
+          }
+          else if (userRank.toLowerCase() == 'user' && approval_access.toLowerCase() == 'uploader-transmitter'){            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => TransmitterHomePage()),
             );
           }
         } else {

@@ -12,8 +12,9 @@ class Transaction {
   final String checkBankDrawee;
   final String checkDate;
   final String remarks;
-  bool isSelected; // New property
+  bool isSelected;
   String onlineTransactionStatus;
+
   Transaction({
     required this.transactingParty,
     required this.transDate,
@@ -35,14 +36,14 @@ class Transaction {
   factory Transaction.fromJson(Map<String, dynamic> json) {
     return Transaction(
       transactingParty: json['transacting_party'] ?? '',
-      transDate: json['check_date'] ?? '',
+      transDate: json['date_trans'] ?? '',
       checkNo: json['check_no'] ?? '',
       docType: json['doc_type'] ?? '',
       fileName: json['file_name'] ?? '',
       filePath: json['file_path'] ?? '',
       uploadedBy: json['uploaded_by'] ?? '',
       dateUploaded: json['date_uploaded'] ?? '',
-      checkAmount: json['check_amount'],
+      checkAmount: json['check_amount'].toString(),
       docNo: json['doc_no'] ?? '',
       checkBankDrawee: json['check_drawee_bank'] ?? '',
       checkDate: json['check_date'],
