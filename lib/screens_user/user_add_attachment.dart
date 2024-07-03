@@ -10,8 +10,11 @@ import 'package:mime/mime.dart';
 import 'package:http_parser/http_parser.dart';
 
 import '../models/user_transaction.dart';
+<<<<<<< HEAD
 import 'no_support.dart';
 import 'transmitter_homepage.dart';
+=======
+>>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
 import 'user_menu.dart';
 import 'user_send_attachment.dart';
 import 'user_upload.dart';
@@ -92,6 +95,105 @@ class _UserAddAttachmentState extends State<UserAddAttachment> {
     }
   }
 
+<<<<<<< HEAD
+=======
+  Future<void> _uploadFile(PlatformFile pickedFile) async {
+    setState(() {
+      _isLoading = true; // Show loading indicator
+    });
+
+    try {
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse(
+            'http://192.168.68.119/localconnect/UserUploadUpdate/update_TS.php'),
+      );
+
+      // Add the 'doc_type', 'doc_no', and 'date_trans' fields to the request
+      request.fields['doc_type'] = widget.transaction.docType.toString();
+      request.fields['doc_no'] = widget.transaction.docNo.toString();
+      request.fields['date_trans'] = widget.transaction.dateTrans.toString();
+
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          pickedFile.bytes!,
+          filename: pickedFile.name,
+        ),
+      );
+
+      developer.log('Uploading file: ${pickedFile.name}');
+      var response = await request.send();
+
+      if (response.statusCode == 200) {
+        var responseBody = await response.stream.bytesToString();
+        developer.log('Upload response: $responseBody');
+
+        try {
+          var result = jsonDecode(responseBody);
+          if (result['status'] == 'success') {
+            setState(() {
+              attachments
+                  .removeWhere((element) => element['name'] == _fileName);
+              attachments.add({'name': _fileName!, 'status': 'Uploaded'});
+              developer.log('Attachments array after uploading: $attachments');
+            });
+
+            _showDialog(
+              context,
+              'Success',
+              'File uploaded successfully!',
+            );
+
+            // Navigate to UserSendAttachment screen
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => UserSendAttachment(
+                  transaction: widget.transaction, // Pass the transaction
+                  selectedDetails: [], // Pass the selected details, adjust based on your requirements
+                ),
+              ),
+            );
+          } else {
+            _showDialog(
+              context,
+              'Error',
+              'File upload failed: ${result['message']}',
+            );
+            developer.log('File upload failed: ${result['message']}');
+          }
+        } catch (e) {
+          _showDialog(
+            context,
+            'Error',
+            'Error uploading file. Please try again later.',
+          );
+          developer.log('Error parsing upload response: $e');
+        }
+      } else {
+        _showDialog(
+          context,
+          'Error',
+          'File upload failed with status: ${response.statusCode}',
+        );
+        developer.log('File upload failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      developer.log('Error uploading file: $e');
+      _showDialog(
+        context,
+        'Error',
+        'Error uploading file. Please try again later.',
+      );
+    } finally {
+      setState(() {
+        _isLoading = false; // Hide loading indicator
+      });
+    }
+  }
+
+>>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
   void _showDialog(BuildContext context, String title, String content) {
     showDialog(
       context: context,

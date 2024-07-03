@@ -23,7 +23,14 @@ class DisbursementDetailsScreen extends StatefulWidget {
       _DisbursementDetailsScreenState();
 }
 
+<<<<<<< HEAD
 String createDocRef(String docType, String docNo) {
+=======
+String createDocRef(
+  String docType,
+  String docNo,
+) {
+>>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
   return '$docType#$docNo';
 }
 
@@ -104,7 +111,11 @@ class _DisbursementDetailsScreenState extends State<DisbursementDetailsScreen> {
             children: [
               buildReadOnlyTextField(
                   'Transacting Party', detail.transactingParty),
+<<<<<<< HEAD
               SizedBox(height: 20),
+=======
+              const Spacer(),
+>>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
               buildTable(detail),
               SizedBox(height: 20),
               Center(
@@ -114,7 +125,13 @@ class _DisbursementDetailsScreenState extends State<DisbursementDetailsScreen> {
                       context,
                       MaterialPageRoute(
                           builder: (context) => UserAddAttachment(
+<<<<<<< HEAD
                               transaction: detail, selectedDetails: [])),
+=======
+                                transaction: detail,
+                                selectedDetails: [],
+                              )),
+>>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
                     );
                   },
                   child: Text('Add Attachment'),
@@ -158,7 +175,14 @@ class _DisbursementDetailsScreenState extends State<DisbursementDetailsScreen> {
         color: Colors.black,
       ),
       children: [
+<<<<<<< HEAD
         buildTableRow('Doc Ref', createDocRef(detail.docType, detail.docNo)),
+=======
+        buildTableRow(
+          'Doc Ref',
+          createDocRef(detail.docType, detail.docNo),
+        ),
+>>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
         buildTableRow('Date', formatDate(detail.transDate)),
         buildTableRow('Payee', detail.transactingParty),
         buildTableRow('Check', detail.checkNumber),
@@ -201,11 +225,13 @@ class _DisbursementDetailsScreenState extends State<DisbursementDetailsScreen> {
       appBar: AppBar(
         backgroundColor: Color.fromARGB(255, 79, 128, 189),
         toolbarHeight: 77,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        title: Column(
           children: [
             Row(
+              //RenderFlex Overflow Error
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+<<<<<<< HEAD
                 Image.asset(
                   'logo.png',
                   width: 60,
@@ -240,16 +266,55 @@ class _DisbursementDetailsScreenState extends State<DisbursementDetailsScreen> {
                       Icons.notifications,
                       size: 24,
                       color: Color.fromARGB(255, 233, 227, 227),
+=======
+                Row(
+                  children: [
+                    Image.asset(
+                      'logo.png',
+                      width: 60,
+                      height: 55,
+>>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'For Uploading',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontFamily: 'Tahoma',
+                        color: Color.fromARGB(255, 233, 227, 227),
+                      ),
+                    ),
+                  ],
                 ),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.person,
-                    size: 24,
-                    color: Color.fromARGB(255, 233, 227, 227),
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Container(
+                      margin: EdgeInsets.only(right: screenSize.width * 0.02),
+                      child: IconButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => NotificationScreen()),
+                          );
+                        },
+                        icon: const Icon(
+                          Icons.notifications,
+                          size: 24,
+                          color: Color.fromARGB(255, 233, 227, 227),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {},
+                      icon: const Icon(
+                        Icons.person,
+                        size: 24,
+                        color: Color.fromARGB(255, 233, 227, 227),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -258,6 +323,7 @@ class _DisbursementDetailsScreenState extends State<DisbursementDetailsScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
+<<<<<<< HEAD
         child: SingleChildScrollView(
           child: Column(
             children: [
@@ -265,6 +331,10 @@ class _DisbursementDetailsScreenState extends State<DisbursementDetailsScreen> {
             ],
           ),
         ),
+=======
+        child:
+            buildDetailsCard(widget.transaction), // Use widget.transaction here
+>>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,

@@ -1,19 +1,29 @@
 import 'dart:convert';
+<<<<<<< HEAD
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'dart:developer' as developer;
+=======
+>>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../admin_screens/notifications.dart';
 import '../models/user_transaction.dart';
+<<<<<<< HEAD
 import 'transmitter_homepage.dart';
 import '../screens_user/user_menu.dart';
 import '../screens_user/user_upload.dart';
 import 'no_support.dart';
 import 'user_add_attachment.dart';
 import 'view_files.dart';
+=======
+import 'user_menu.dart';
+import 'user_upload.dart';
+import 'view_files.dart';
+import 'user_add_attachment.dart';
+>>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
 
 class UserSendAttachment extends StatefulWidget {
   final Transaction transaction;
@@ -91,6 +101,7 @@ class _UserSendAttachmentState extends State<UserSendAttachment> {
     }
   }
 
+<<<<<<< HEAD
   Future<void> _uploadTransactionOrFile() async {
     if (widget.transaction != null && attachments.isNotEmpty) {
       setState(() {
@@ -227,6 +238,64 @@ class _UserSendAttachmentState extends State<UserSendAttachment> {
     );
   }
 
+=======
+  Future<void> _uploadTransaction() async {
+    setState(() {
+      _isLoading = true; // Show loading indicator
+    });
+
+    try {
+      var uri = Uri.parse(
+          'http://192.168.68.119/localconnect/UserUploadUpdate/update_OPS.php');
+      var request = http.Request('POST', uri);
+
+      // URL-encode the values
+      var requestBody =
+          'doc_type=${Uri.encodeComponent(widget.transaction.docType)}&doc_no=${Uri.encodeComponent(widget.transaction.docNo)}&date_trans=${Uri.encodeComponent(widget.transaction.dateTrans)}';
+
+      request.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+      request.body = requestBody;
+
+      var response = await request.send();
+
+      if (response.statusCode == 200) {
+        var responseBody = await response.stream.bytesToString();
+        var result = jsonDecode(responseBody);
+
+        if (result['status'] == 'Success') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(result['message'])),
+          );
+
+          // Navigate back to previous screen (DisbursementDetailsScreen)
+          Navigator.pop(context);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(result['message'])),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  'Transaction upload failed with status: ${response.statusCode}')),
+        );
+      }
+    } catch (e) {
+      print('Error uploading transaction: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content:
+                Text('Error uploading transaction. Please try again later.')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false; // Hide loading indicator
+      });
+    }
+  }
+
+>>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
   Widget buildDetailsCard(Transaction detail) {
     return Container(
       height: 450,
