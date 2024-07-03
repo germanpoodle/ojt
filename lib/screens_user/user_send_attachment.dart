@@ -92,7 +92,7 @@ class _UserSendAttachmentState extends State<UserSendAttachment> {
   }
 
   Future<void> _uploadTransactionOrFile() async {
-    if (widget.transaction != null && attachments != null) {
+    if (widget.transaction != null && attachments.isNotEmpty) {
       setState(() {
         _isLoading = true; // Show loading indicator
       });
@@ -101,10 +101,10 @@ class _UserSendAttachmentState extends State<UserSendAttachment> {
       List<String> errorMessages = [];
 
       try {
-        var uri = Uri.parse(
-            'http://192.168.68.114/localconnect/UserUploadUpdate/update_TS.php');
+        var uri =
+            Uri.parse('http://192.168.68.119/localconnect/upload_pic.php');
 
-        for (var attachment in attachments.toList()) {
+        for (var attachment in attachments) {
           if (attachment['name'] != null &&
               attachment['bytes'] != null &&
               attachment['size'] != null) {
@@ -119,7 +119,7 @@ class _UserSendAttachmentState extends State<UserSendAttachment> {
             // Prepare the file to be uploaded
             var pickedFile = PlatformFile(
               name: attachment['name']!,
-              bytes: Uint8List.fromList(utf8.encode(attachment['bytes']!)),
+              bytes: Uint8List.fromList(base64Decode(attachment['bytes']!)),
               size: int.parse(attachment['size']!),
             );
 
@@ -244,9 +244,9 @@ class _UserSendAttachmentState extends State<UserSendAttachment> {
             children: [
               buildReadOnlyTextField(
                   'Transacting Party', detail.transactingParty),
-              SizedBox(height: 20),
+              const Spacer(),
               buildTable(detail),
-              SizedBox(height: 20),
+              const Spacer(),
               Center(
                 child: TextButton(
                   onPressed: () async {
@@ -342,152 +342,156 @@ class _UserSendAttachmentState extends State<UserSendAttachment> {
     );
   }
 
+  @override
+  Widget build(BuildContext context) {
+    Size screenSize = MediaQuery.of(context).size;
 
-@override
-Widget build(BuildContext context) {
-  Size screenSize = MediaQuery.of(context).size;
-
-  return Scaffold(
-    appBar: AppBar(
-      backgroundColor: Color.fromARGB(255, 79, 128, 189),
-      toolbarHeight: 77,
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Image.asset(
-                'logo.png',
-                width: 60,
-                height: 55,
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                'For Uploading',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontFamily: 'Tahoma',
-                  color: Color.fromARGB(255, 233, 227, 227),
-                ),
-              ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Container(
-                margin: EdgeInsets.only(right: screenSize.width * 0.02),
-                child: IconButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => NotificationScreen()),
-                    );
-                  },
-                  icon: const Icon(
-                    Icons.notifications,
-                    size: 24,
-                    color: Color.fromARGB(255, 233, 227, 227),
-                  ),
-                ),
-              ),
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(
-                  Icons.person,
-                  size: 24,
-                  color: Color.fromARGB(255, 233, 227, 227),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    ),
-    body: Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          buildDetailsCard(widget.transaction),
-          Spacer(), // Pushes the buttons to the bottom
-          Padding(
-            padding: const EdgeInsets.only(bottom: 16.0), // Add some bottom padding
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Color.fromARGB(255, 79, 128, 189),
+        toolbarHeight: 77,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
               children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ViewFilesPage(
-                            attachments: widget.attachments,
-                            onDelete: (int index) {
-                              setState(() {
-                                attachments.removeAt(index);
-                              });
-                              developer.log(
-                                  'Attachment removed from UserSendAttachment: $index');
-                            },
-                          ),
-                        ),
-                      );
-                    },
-                    icon: Icon(Icons.folder_open),
-                    label: Text('View Files'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[400],
-                    ),
-                  ),
+                Image.asset(
+                  'logo.png',
+                  width: 60,
+                  height: 55,
                 ),
-                SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: _isLoading
-                        ? null
-                        : () {
-                            _uploadTransactionOrFile();
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => TransmitterHomePage(key: Key('value')),
-                              ),
-                            );
-                          },
-                    icon: Icon(Icons.send),
-                    label: Text('Send'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color.fromARGB(255, 79, 129, 189),
-                    ),
+                const SizedBox(width: 8),
+                const Text(
+                  'For Uploading',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontFamily: 'Tahoma',
+                    color: Color.fromARGB(255, 233, 227, 227),
                   ),
                 ),
               ],
             ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Container(
+                  margin: EdgeInsets.only(right: screenSize.width * 0.02),
+                  child: IconButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => NotificationScreen()),
+                      );
+                    },
+                    icon: const Icon(
+                      Icons.notifications,
+                      size: 24,
+                      color: Color.fromARGB(255, 233, 227, 227),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {},
+                  icon: const Icon(
+                    Icons.person,
+                    size: 24,
+                    color: Color.fromARGB(255, 233, 227, 227),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            buildDetailsCard(widget.transaction),
+            Spacer(), // Pushes the buttons to the bottom
+            Padding(
+              padding: const EdgeInsets.only(
+                  bottom: 16.0), // Add some bottom padding
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ViewFilesPage(
+                              attachments: widget.attachments,
+                              onDelete: (int index) {
+                                setState(() {
+                                  attachments.removeAt(index);
+                                });
+                                developer.log(
+                                    'Attachment removed from UserSendAttachment: $index');
+                              },
+                              docType: '',
+                              docNo: '',
+                            ),
+                          ),
+                        );
+                      },
+                      icon: Icon(Icons.folder_open),
+                      label: Text('View Files'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey[400],
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _isLoading
+                          ? null
+                          : () {
+                              _uploadTransactionOrFile();
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const TransmitterHomePage(
+                                          key: Key('value')),
+                                ),
+                              );
+                            },
+                      icon: Icon(Icons.send),
+                      label: Text('Send'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color.fromARGB(255, 79, 129, 189),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        selectedItemColor: Color.fromARGB(255, 79, 128, 189),
+        onTap: _onItemTapped,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.upload_file_outlined),
+            label: 'Upload',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.quiz),
+            label: 'No Support',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.menu_sharp),
+            label: 'Menu',
           ),
         ],
       ),
-    ),
-    bottomNavigationBar: BottomNavigationBar(
-      currentIndex: _selectedIndex,
-      selectedItemColor: Color.fromARGB(255, 79, 128, 189),
-      onTap: _onItemTapped,
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.upload_file_outlined),
-          label: 'Upload',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.quiz),
-          label: 'No Support',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.menu_sharp),
-          label: 'Menu',
-        ),
-      ],
-    ),
-  );
-}
+    );
+  }
 }

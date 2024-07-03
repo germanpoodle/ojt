@@ -69,7 +69,7 @@ void _onItemTapped(int index) {
   Future<void> fetchTransactions() async {
     try {
       final response = await http.get(Uri.parse(
-          'http://127.0.0.1/localconnect/fetch_transaction_data.php'));
+          'http://192.168.68.119/localconnect/fetch_transaction_data.php'));
 
       if (response.statusCode == 200) {
         setState(() {

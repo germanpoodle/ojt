@@ -14,6 +14,7 @@ class Transaction {
   final String remarks;
   bool isSelected;
   String onlineTransactionStatus;
+  final String approverRemarks;
 
   Transaction({
     required this.transactingParty,
@@ -31,6 +32,7 @@ class Transaction {
     required this.remarks,
     required this.onlineTransactionStatus,
     this.isSelected = false,
+    required this.approverRemarks,
   });
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
@@ -49,6 +51,7 @@ class Transaction {
       checkDate: json['check_date'],
       remarks: json['remarks'] ?? '',
       onlineTransactionStatus: json['online_processing_status'] ?? '',
+      approverRemarks: json['approver_remarks'] ?? '',
     );
   }
 }

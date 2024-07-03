@@ -67,8 +67,11 @@ class _UserAddAttachmentState extends State<UserAddAttachment> {
 
   Future<void> _pickFile() async {
     developer.log('Picking file...');
-    FilePickerResult? result =
-        await FilePicker.platform.pickFiles(allowMultiple: true);
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      allowMultiple: true,
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
+    );
 
     if (result != null && result.files.isNotEmpty) {
       setState(() {
@@ -81,9 +84,9 @@ class _UserAddAttachmentState extends State<UserAddAttachment> {
             'size': file.size,
           });
         }
-      //  developer.log('Attachments array after adding: $attachments');
+        //  developer.log('Attachments array after adding: $attachments');
       });
-       developer.log('Files picked: ${result.files.length}');
+      developer.log('Files picked: ${result.files.length}');
     } else {
       developer.log('File picking cancelled');
     }
@@ -109,64 +112,64 @@ class _UserAddAttachmentState extends State<UserAddAttachment> {
 
   @override
   Widget build(BuildContext context) {
-  Size screenSize = MediaQuery.of(context).size;
-  return Scaffold(
-    appBar: AppBar(
-      backgroundColor: const Color.fromARGB(255, 79, 128, 189),
-      toolbarHeight: 77,
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Image.asset(
-                'logo.png',
-                width: 60,
-                height: 55,
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                'For Uploading',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontFamily: 'Tahoma',
-                  color: Color.fromARGB(255, 233, 227, 227),
+    Size screenSize = MediaQuery.of(context).size;
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: const Color.fromARGB(255, 79, 128, 189),
+        toolbarHeight: 77,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Image.asset(
+                  'logo.png',
+                  width: 60,
+                  height: 55,
                 ),
-              ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Container(
-                margin: EdgeInsets.only(right: screenSize.width * 0.02),
-                child: IconButton(
+                const SizedBox(width: 8),
+                const Text(
+                  'For Uploading',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontFamily: 'Tahoma',
+                    color: Color.fromARGB(255, 233, 227, 227),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Container(
+                  margin: EdgeInsets.only(right: screenSize.width * 0.02),
+                  child: IconButton(
+                    onPressed: () {
+                      // Handle notifications button tap
+                    },
+                    icon: const Icon(
+                      Icons.notifications,
+                      size: 24,
+                      color: Color.fromARGB(255, 233, 227, 227),
+                    ),
+                  ),
+                ),
+                IconButton(
                   onPressed: () {
-                    // Handle notifications button tap
+                    // Handle user profile button tap
                   },
                   icon: const Icon(
-                    Icons.notifications,
+                    Icons.person,
                     size: 24,
                     color: Color.fromARGB(255, 233, 227, 227),
                   ),
                 ),
-              ),
-              IconButton(
-                onPressed: () {
-                  // Handle user profile button tap
-                },
-                icon: const Icon(
-                  Icons.person,
-                  size: 24,
-                  color: Color.fromARGB(255, 233, 227, 227),
-                ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
-    ),
-     body: Column(
+      body: Column(
         children: [
           Expanded(
             child: Padding(
@@ -260,19 +263,22 @@ class _UserAddAttachmentState extends State<UserAddAttachment> {
                             for (var attachment in attachmentsString) {
                               if (attachment['name'] == null ||
                                   attachment['name']!.isEmpty) {
-                                developer.log('Error: attachment name is null or empty');
+                                developer.log(
+                                    'Error: attachment name is null or empty');
                                 return;
                               }
 
                               if (attachment['bytes'] == null) {
-                                developer.log('Error: attachment bytes are null');
+                                developer
+                                    .log('Error: attachment bytes are null');
                                 return;
                               }
 
                               if (attachment['size'] == null ||
                                   attachment['size']!.isEmpty ||
                                   int.parse(attachment['size']!) <= 0) {
-                                developer.log('Error: attachment size is null or invalid');
+                                developer.log(
+                                    'Error: attachment size is null or invalid');
                                 return;
                               }
                             }
@@ -289,8 +295,8 @@ class _UserAddAttachmentState extends State<UserAddAttachment> {
                             );
                           },
                           style: ElevatedButton.styleFrom(
-                           backgroundColor: Color.fromARGB(255, 79, 129, 189),
-                         ),
+                            backgroundColor: Color.fromARGB(255, 79, 129, 189),
+                          ),
                           child: const Text('Attach File'),
                         ),
                       ],

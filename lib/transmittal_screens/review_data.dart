@@ -163,6 +163,34 @@ class _ReviewDataState extends State<ReviewData> {
     );
   }
 
+  void _returnDocument() {
+    // Logic for returning the document
+    // For example, you might navigate to another screen or show a dialog
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Return Document'),
+        content: Text('Do you want to return this document?'),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              // Your logic for returning the document
+              Navigator.of(context).pop(); // Close the dialog
+              // Add additional logic here
+            },
+            child: Text('Yes'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close the dialog
+            },
+            child: Text('No'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
@@ -251,9 +279,8 @@ class _ReviewDataState extends State<ReviewData> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => TransViewAttachments(
-                            docType:
-                                'your_doc_type', // Replace with actual docType
-                            docNo: 'your_doc_no', // Replace with actual docNo
+                            docType: widget.transaction.docType,
+                            docNo: widget.transaction.docNo,
                           ),
                         ),
                       );
@@ -272,6 +299,20 @@ class _ReviewDataState extends State<ReviewData> {
                     onPressed: () {
                       // add your button press logic here
                     },
+                  ),
+                  ElevatedButton(
+                    child: Row(
+                      children: [
+                        Icon(
+                            Icons.file_upload), // Changed icon to `file_upload`
+                        Text('  Return Document'), // Added text for the button
+                      ],
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          Color.fromARGB(255, 255, 69, 58), // Red color
+                    ),
+                    onPressed: _returnDocument, // Call the method on press
                   ),
                 ],
               ),

@@ -1,19 +1,22 @@
 import 'dart:convert';
-
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart';
-import 'package:flutter/services.dart' show rootBundle;
-
+import 'package:path_provider/path_provider.dart';
+import 'package:dio/dio.dart';
 import '../admin_screens/notifications.dart';
 
 class ViewFilesPage extends StatefulWidget {
   final List<Map<String, String>> attachments;
   final Function(int index) onDelete;
+  final String docType;
+  final String docNo;
 
   const ViewFilesPage({
     Key? key,
     required this.attachments,
     required this.onDelete,
+    required this.docType,
+    required this.docNo,
   }) : super(key: key);
 
   @override
@@ -36,13 +39,40 @@ class _ViewFilesPageState extends State<ViewFilesPage> {
     widget.onDelete(index); // Call the callback function
   }
 
+  Future<void> _downloadFile(String fileUrl, String fileName) async {
+    try {
+      var dir = await getApplicationDocumentsDirectory();
+      String fullPath = "${dir.path}/$fileName";
+      Dio dio = Dio();
+      await dio.download(fileUrl, fullPath);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Downloaded $fileName')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error downloading file: $e')),
+      );
+    }
+  }
+
   Future<String> _loadAsset(String path) async {
-    return await rootBundle.loadString(path);
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final file = File('${dir.path}/$path');
+      if (await file.exists()) {
+        return await file.readAsString();
+      } else {
+        throw Exception('Asset not found at $path');
+      }
+    } catch (e) {
+      throw Exception('Failed to load asset: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color.fromARGB(255, 79, 128, 189),
@@ -106,11 +136,9 @@ class _ViewFilesPageState extends State<ViewFilesPage> {
         itemBuilder: (context, index) {
           final attachment = _attachments[index];
           return Dismissible(
-            key: Key(attachment['name']!),
+            key: Key(attachment["name"]!),
             onDismissed: (direction) {
               _removeAttachment(index);
-              // Handle the removal of the attachment
-              // e.g., remove from the database or file system
             },
             background: Container(
               color: Colors.red,
@@ -146,13 +174,21 @@ class _ViewFilesPageState extends State<ViewFilesPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          attachment['name']!,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        attachment['name']!.toLowerCase().endsWith('.jpeg') ||
+                        attachment['name']!.toLowerCase().endsWith('.jpg') ||
+                        attachment['name']!.toLowerCase().endsWith('.png')
+                            ? Image.network(
+                                'http://192.168.68.119/localconnect/assets/${attachment['path']}',
+                                width: screenSize.width * 0.75,
+                                height: screenSize.height * 0.3,
+                                fit: BoxFit.cover,
+                              )
+                            : Container(
+                                height: 50,
+                                width: 50,
+                                color: Colors.grey,
+                                child: Center(child: Text('File')),
+                              ),
                         Text(attachment['status']!),
                       ],
                     ),
@@ -175,9 +211,12 @@ class _ViewFilesPageState extends State<ViewFilesPage> {
                       child: const Icon(Icons.remove_red_eye),
                     ),
                   IconButton(
-                    icon: Icon(Icons.delete, color: Colors.red),
+                    icon: Icon(Icons.download, color: Colors.blue),
                     onPressed: () {
-                      _removeAttachment(index);
+                      _downloadFile(
+                        'http://192.168.68.119/localconnect/assets/${attachment['path']}',
+                        attachment['name']!,
+                      );
                     },
                   ),
                 ],
