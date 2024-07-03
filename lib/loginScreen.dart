@@ -22,7 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> loginUser(BuildContext context, String username, String password) async {
     try {
-      final url = Uri.parse('http://127.0.0.1/localconnect/login.php');
+      final url = Uri.parse('http://192.168.68.119/localconnect/login.php');
       final response = await http.post(
         url,
         body: {
@@ -42,7 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
           if (userRank.toLowerCase() == 'admin') {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const UploaderHomePage()),
+              MaterialPageRoute(builder: (context) => const AdminHomePage()),
             );
           }
           else if (userRank.toLowerCase() == 'user' && approval_access.toLowerCase() == 'uploader'){
