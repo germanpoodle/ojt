@@ -10,11 +10,7 @@ import 'package:mime/mime.dart';
 import 'package:http_parser/http_parser.dart';
 
 import '../models/user_transaction.dart';
-<<<<<<< HEAD
-import 'no_support.dart';
-import 'transmitter_homepage.dart';
-=======
->>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
+import 'user_homepage.dart';
 import 'user_menu.dart';
 import 'user_send_attachment.dart';
 import 'user_upload.dart';

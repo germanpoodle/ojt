@@ -24,12 +24,18 @@ class DisbursementDetailsScreen extends StatefulWidget {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 String createDocRef(String docType, String docNo) {
 =======
+=======
+>>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
 String createDocRef(
   String docType,
   String docNo,
 ) {
+<<<<<<< HEAD
+>>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
+=======
 >>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
   return '$docType#$docNo';
 }
@@ -112,7 +118,11 @@ class _DisbursementDetailsScreenState extends State<DisbursementDetailsScreen> {
               buildReadOnlyTextField(
                   'Transacting Party', detail.transactingParty),
 <<<<<<< HEAD
+<<<<<<< HEAD
               SizedBox(height: 20),
+=======
+              const Spacer(),
+>>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
 =======
               const Spacer(),
 >>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
@@ -126,7 +136,13 @@ class _DisbursementDetailsScreenState extends State<DisbursementDetailsScreen> {
                       MaterialPageRoute(
                           builder: (context) => UserAddAttachment(
 <<<<<<< HEAD
+<<<<<<< HEAD
                               transaction: detail, selectedDetails: [])),
+=======
+                                transaction: detail,
+                                selectedDetails: [],
+                              )),
+>>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
 =======
                                 transaction: detail,
                                 selectedDetails: [],
@@ -176,12 +192,18 @@ class _DisbursementDetailsScreenState extends State<DisbursementDetailsScreen> {
       ),
       children: [
 <<<<<<< HEAD
+<<<<<<< HEAD
         buildTableRow('Doc Ref', createDocRef(detail.docType, detail.docNo)),
 =======
+=======
+>>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
         buildTableRow(
           'Doc Ref',
           createDocRef(detail.docType, detail.docNo),
         ),
+<<<<<<< HEAD
+>>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
+=======
 >>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
         buildTableRow('Date', formatDate(detail.transDate)),
         buildTableRow('Payee', detail.transactingParty),
@@ -232,6 +254,7 @@ class _DisbursementDetailsScreenState extends State<DisbursementDetailsScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
 <<<<<<< HEAD
+<<<<<<< HEAD
                 Image.asset(
                   'logo.png',
                   width: 60,
@@ -267,12 +290,17 @@ class _DisbursementDetailsScreenState extends State<DisbursementDetailsScreen> {
                       size: 24,
                       color: Color.fromARGB(255, 233, 227, 227),
 =======
+=======
+>>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
                 Row(
                   children: [
                     Image.asset(
                       'logo.png',
                       width: 60,
                       height: 55,
+<<<<<<< HEAD
+>>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
+=======
 >>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
                     ),
                     const SizedBox(width: 8),
@@ -324,6 +352,7 @@ class _DisbursementDetailsScreenState extends State<DisbursementDetailsScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
 <<<<<<< HEAD
+<<<<<<< HEAD
         child: SingleChildScrollView(
           child: Column(
             children: [
@@ -331,6 +360,10 @@ class _DisbursementDetailsScreenState extends State<DisbursementDetailsScreen> {
             ],
           ),
         ),
+=======
+        child:
+            buildDetailsCard(widget.transaction), // Use widget.transaction here
+>>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
 =======
         child:
             buildDetailsCard(widget.transaction), // Use widget.transaction here

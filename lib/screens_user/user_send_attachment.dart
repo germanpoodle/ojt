@@ -1,29 +1,17 @@
 import 'dart:convert';
-<<<<<<< HEAD
 import 'dart:io';
-import 'dart:typed_data';
-import 'package:file_picker/file_picker.dart';
-import 'dart:developer' as developer;
-=======
->>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
+
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../admin_screens/notifications.dart';
 import '../models/user_transaction.dart';
-<<<<<<< HEAD
-import 'transmitter_homepage.dart';
-import '../screens_user/user_menu.dart';
-import '../screens_user/user_upload.dart';
-import 'no_support.dart';
-import 'user_add_attachment.dart';
-import 'view_files.dart';
-=======
+import 'user_homepage.dart';
 import 'user_menu.dart';
 import 'user_upload.dart';
 import 'view_files.dart';
 import 'user_add_attachment.dart';
->>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
+
 
 class UserSendAttachment extends StatefulWidget {
   final Transaction transaction;
@@ -101,148 +89,10 @@ class _UserSendAttachmentState extends State<UserSendAttachment> {
     }
   }
 
-<<<<<<< HEAD
-  Future<void> _uploadTransactionOrFile() async {
-    if (widget.transaction != null && attachments.isNotEmpty) {
-      setState(() {
-        _isLoading = true; // Show loading indicator
-      });
-
-      bool allUploadedSuccessfully = true;
-      List<String> errorMessages = [];
-
-      try {
-        var uri =
-            Uri.parse('http://192.168.68.119/localconnect/upload_pic.php');
-
-        for (var attachment in attachments) {
-          if (attachment['name'] != null &&
-              attachment['bytes'] != null &&
-              attachment['size'] != null) {
-            var request = http.MultipartRequest('POST', uri);
-
-            // Set form fields
-            request.fields['doc_type'] = widget.transaction.docType.toString();
-            request.fields['doc_no'] = widget.transaction.docNo.toString();
-            request.fields['date_trans'] =
-                widget.transaction.dateTrans.toString();
-
-            // Prepare the file to be uploaded
-            var pickedFile = PlatformFile(
-              name: attachment['name']!,
-              bytes: Uint8List.fromList(base64Decode(attachment['bytes']!)),
-              size: int.parse(attachment['size']!),
-            );
-
-            if (pickedFile.bytes != null) {
-              // Attach file to the request
-              request.files.add(
-                http.MultipartFile.fromBytes(
-                  'file',
-                  pickedFile.bytes!,
-                  filename: pickedFile.name,
-                ),
-              );
-
-              developer.log('Uploading file: ${pickedFile.name}');
-
-              // Send the request and handle the response
-              var response = await request.send();
-
-              if (response.statusCode == 200) {
-                var responseBody = await response.stream.bytesToString();
-                developer.log('Upload response: $responseBody');
-
-                // Check if the response body is a valid JSON
-                if (responseBody.startsWith('{') &&
-                    responseBody.endsWith('}')) {
-                  var result = jsonDecode(responseBody);
-
-                  if (result['status'] == 'success') {
-                    setState(() {
-                      // Update UI state after successful upload
-                      attachments.removeWhere(
-                          (element) => element['name'] == pickedFile.name);
-                      attachments
-                          .add({'name': pickedFile.name, 'status': 'Uploaded'});
-                      developer.log(
-                          'Attachments array after uploading: $attachments');
-                    });
-                  } else {
-                    allUploadedSuccessfully = false;
-                    errorMessages.add(result['message']);
-                    developer.log('File upload failed: ${result['message']}');
-                  }
-                } else {
-                  allUploadedSuccessfully = false;
-                  errorMessages.add('Invalid response from server');
-                  developer.log('Invalid response from server: $responseBody');
-                }
-              } else {
-                allUploadedSuccessfully = false;
-                errorMessages.add(
-                    'File upload failed with status: ${response.statusCode}');
-                developer.log(
-                    'File upload failed with status: ${response.statusCode}');
-              }
-            } else {
-              allUploadedSuccessfully = false;
-              errorMessages.add('Error: attachment bytes are null or empty');
-              developer.log('Error: attachment bytes are null or empty');
-            }
-          } else {
-            allUploadedSuccessfully = false;
-            errorMessages.add('Error: attachment name, bytes or size is null');
-            developer.log('Error: attachment name, bytes or size is null');
-          }
-        }
-
-        // Show single dialog based on the overall upload result
-        if (allUploadedSuccessfully) {
-          _showDialog(context, 'Success', 'All files uploaded successfully!');
-        } else {
-          _showDialog(context, 'Error',
-              'Error uploading files:\n${errorMessages.join('\n')}');
-        }
-      } catch (e) {
-        developer.log('Error uploading file or transaction: $e');
-        _showDialog(
-            context, 'Error', 'Error uploading file. Please try again later.');
-      } finally {
-        setState(() {
-          _isLoading = false; // Hide loading indicator
-        });
-      }
-    } else {
-      developer.log('Error: widget.transaction or attachments is null');
-      _showDialog(
-          context, 'Error', 'Error uploading file. Please try again later.');
-    }
-  }
-
-  void _showDialog(BuildContext context, String title, String content) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(content),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-
-=======
-  Future<void> _uploadTransaction() async {
-    setState(() {
-      _isLoading = true; // Show loading indicator
-    });
+Future<void> _uploadTransaction() async {
+  setState(() {
+    _isLoading = true; // Show loading indicator
+  });
 
     try {
       var uri = Uri.parse(
@@ -267,35 +117,32 @@ class _UserSendAttachmentState extends State<UserSendAttachment> {
             SnackBar(content: Text(result['message'])),
           );
 
-          // Navigate back to previous screen (DisbursementDetailsScreen)
-          Navigator.pop(context);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(result['message'])),
-          );
-        }
+        // Navigate back to previous screen (DisbursementDetailsScreen)
+        Navigator.pop(context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(
-                  'Transaction upload failed with status: ${response.statusCode}')),
+          SnackBar(content: Text(result['message'])),
         );
       }
-    } catch (e) {
-      print('Error uploading transaction: $e');
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content:
-                Text('Error uploading transaction. Please try again later.')),
+            content: Text(
+                'Transaction upload failed with status: ${response.statusCode}')),
       );
-    } finally {
-      setState(() {
-        _isLoading = false; // Hide loading indicator
-      });
     }
+  } catch (e) {
+    print('Error uploading transaction: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+          content: Text('Error uploading transaction. Please try again later.')),
+    );
+  } finally {
+    setState(() {
+      _isLoading = false; // Hide loading indicator
+    });
   }
-
->>>>>>> 53d7fb7cc0771b67d3f1fecbf18f3158e47864bd
+}
   Widget buildDetailsCard(Transaction detail) {
     return Container(
       height: 450,
